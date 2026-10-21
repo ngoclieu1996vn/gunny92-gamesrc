@@ -5640,18 +5640,20 @@ namespace Game.Server.GameObjects
 				FightPower = int.MaxValue;
 			}
 			PlayerCharacter.FightPower = FightPower;
-            //<add key="DATE" value="3/13/2023 00:00:00"/>
-			// tan vuong
-            var GetDateTime = Convert.ToDateTime("08/06/2023 00:00:00");
-            if (m_character.LastWeekly.Date >= GetDateTime.Date)
+            // tan vuong
+            try
             {
-				//LC
-                GmActivityMgr.OnUpdateUseBigBugle(this, FightPower);
+                DateTime getDateTime = new DateTime(2023, 8, 6, 0, 0, 0);
+                if (m_character != null && m_character.LastWeekly.Date >= getDateTime.Date)
+                {
+                    //LC
+                    GmActivityMgr.OnUpdateUseBigBugle(this, FightPower);
+                    //Grade
+                    GmActivityMgr.OnUpdateLeaguePoint(this, this.PlayerCharacter.GP);
+                }
             }
-            if (m_character.LastWeekly.Date >= GetDateTime.Date)
+            catch
             {
-				//Grade
-                GmActivityMgr.OnUpdateLeaguePoint(this, this.PlayerCharacter.GP);
             }
 
             GmActivityMgr.OnPower(this, FightPower);
@@ -6070,19 +6072,29 @@ namespace Game.Server.GameObjects
 					
 					if (playerCount == 2)
 					{
-						string timeForBxh1vs1 = GameProperties.TimeForBxh1vs1;
-						string[] timeForBxh1vs1s = timeForBxh1vs1.Split('|');
-						DateTime dateTime1 = Convert.ToDateTime(timeForBxh1vs1s[0]);
-						DateTime dateTime2 = Convert.ToDateTime(timeForBxh1vs1s[1]);
-						DateTime now = DateTime.Now;
-						if (now >= dateTime1 && now <= dateTime2)
+						try
 						{
-							using (PlayerBussiness playerBussiness = new PlayerBussiness())
+							string timeForBxh1vs1 = GameProperties.TimeForBxh1vs1;
+							if (!string.IsNullOrEmpty(timeForBxh1vs1))
 							{
-								playerBussiness.IncreasePVP1vs1(m_character.ID);
+								string[] timeForBxh1vs1s = timeForBxh1vs1.Split('|');
+								if (timeForBxh1vs1s.Length >= 2 &&
+								    DateTime.TryParse(timeForBxh1vs1s[0], System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime dateTime1) &&
+								    DateTime.TryParse(timeForBxh1vs1s[1], System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime dateTime2))
+								{
+									DateTime now = DateTime.Now;
+									if (now >= dateTime1 && now <= dateTime2)
+									{
+										using (PlayerBussiness playerBussiness = new PlayerBussiness())
+										{
+											playerBussiness.IncreasePVP1vs1(m_character.ID);
+										}
+									}
+								}
 							}
-
-							//Out.SendMessage(eMessageType.Normal, "Chiến thắng, +1 điểm cho bảng xếp hạng 1vs1");
+						}
+						catch
+						{
 						}
 					}
 				}
