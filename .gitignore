@@ -1,0 +1,12 @@
+# Gunny 9.2 gameSrc .gitignore
+[Bb]in/
+[Oo]bj/
+.vs/
+packages/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.log
+*.tmp
+*.pdb
