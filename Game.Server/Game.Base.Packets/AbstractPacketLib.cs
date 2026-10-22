@@ -948,6 +948,7 @@ namespace Game.Base.Packets
                 packet.WriteInt(m_gameClient.Player.PlayerCharacter.explorerManualInfo.MagicResistance);//_loc3_.manualProInfo.pro_MagicResistance = _loc2_.readInt();
                 packet.WriteInt(m_gameClient.Player.PlayerCharacter.explorerManualInfo.Stamina);//_loc3_.manualProInfo.pro_Stamina = _loc2_.readInt();
                 #endregion
+                SendTCP(LoginResponseV92.CreateKingBlessState(m_gameClient.Player.PlayerCharacter.ID));
                 SendTCP(LoginResponseV92.Upgrade(packet, m_gameClient.Player.PlayerCharacter.GiftToken));
 			}
 		}

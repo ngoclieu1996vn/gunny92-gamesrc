@@ -127,6 +127,17 @@ public static class PatchLoginProtocol
                 var editor = sendMethod.Body.GetILProcessor();
                 if (sendMethod == login)
                 {
+                    var packetLoad = send.Previous;
+                    var sendStart = packetLoad.Previous;
+                    if (sendStart.OpCode != OpCodes.Ldarg_0 || packetLoad.OpCode != OpCodes.Ldloc_1)
+                        throw new InvalidOperationException("Unexpected login response local layout.");
+                    var packetType = module.ImportReference(responseSource.Methods.Single(value => value.Name == "Upgrade").ReturnType);
+                    var idGetter = new MethodReference("get_ClientID", module.TypeSystem.Int32, packetType) { HasThis = true };
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Ldarg_0));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Ldloc_1));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Callvirt, idGetter));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Call, methods[responseSource.Methods.Single(value => value.Name == "CreateKingBlessState")]));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Call, (MethodReference)send.Operand));
                     editor.InsertBefore(send, Instruction.Create(OpCodes.Ldarg_0));
                     editor.InsertBefore(send, Instruction.Create(OpCodes.Ldfld, clientField));
                     editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, playerGetter));

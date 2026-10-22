@@ -59,6 +59,16 @@ namespace Game.Server.Packets
             return new byte[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
         }
 
+        public static GSPacketIn CreateKingBlessState(int playerId)
+        {
+            // No active subscription is implemented by this backend. The client still
+            // requires an initialized expiry date before constructing its hall toolbar.
+            var packet = new GSPacketIn(142, playerId);
+            packet.WriteInt(0);
+            packet.WriteDateTime(new DateTime(2000, 1, 1));
+            return packet;
+        }
+
         private static int Size(char type, byte[] buffer, int offset, int length)
         {
             if (type == 'i') return 4;

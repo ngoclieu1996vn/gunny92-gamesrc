@@ -263,5 +263,8 @@ Equal(q.ReadString(),"","hasMagicIDStr");
 Equal(q.Offset,q.Length,"end");
 var money=new GSPacketIn(38,227);for(int i=0;i<11;i++)money.WriteInt(300+i);var updated=LoginResponseV92.Upgrade(money,999);updated.Offset=20;int[] expected={300,304,0,302,303,305,308,0,309,307,310,0};foreach(int value in expected)Equal(updated.ReadInt(),value,"private info");Equal(updated.Offset,updated.Length,"private end");
 p.WriteByte(1);bool rejected=false;try{LoginResponseV92.Upgrade(p,0);}catch(InvalidDataException){rejected=true;}Equal(rejected,true,"trailing data rejected");
-Console.WriteLine("PASS: current client login field order, Unicode, balances, progression, manual stats, private updates and strict length.");return 0;}
+var bless=LoginResponseV92.CreateKingBlessState(227);bless.Offset=20;
+Equal(bless.Code,(short)142,"bless code");Equal(bless.ClientID,227,"bless player");
+Equal(bless.ReadInt(),0,"bless inactive");Equal(bless.ReadDateTime(),new DateTime(2000,1,1),"bless expired");Equal(bless.Offset,bless.Length,"bless end");
+Console.WriteLine("PASS: current client login field order, Unicode, balances, progression, manual stats, private updates, inactive King Bless and strict length.");return 0;}
 }

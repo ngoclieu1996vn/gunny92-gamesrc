@@ -14,6 +14,10 @@ has no separate bound premium balance. Inventory medals remain inventory items.
 The adapter rejects truncated or extended legacy payloads. Regression tests read
 every field in current-client order, including Unicode strings and dates.
 
+Login also sends packet 142 before packet 1 to initialize King Bless as inactive
+with an expired date. The current client dereferences this date while creating
+its hall toolbar, even when no subscription is active. This does not grant buffs.
+
 `QuestListV92` regenerates the quest cache from the existing database. It adds
 the `Rate` metadata from `SP_Server_Config`, `RewardBindMoney`, and the five
 client reward-count fields. Counts remain equal to the fixed amount granted
