@@ -164,6 +164,7 @@
   <ItemGroup>
     <Compile Include="Consortia.cs" />
     <Compile Include="Game.Base.Packets\AbstractPacketLib.cs" />
+    <Compile Include="Game.Base.Packets\LoginResponseV92.cs" />
     <Compile Include="Game.Base.Packets\IPacketLib.cs" />
     <Compile Include="Game.Base.Packets\PacketLibAttribute.cs" />
     <Compile Include="Game.Base.Packets\PacketProcessor.cs" />
@@ -782,6 +783,7 @@
     <Compile Include="Game.Server.Packets\Client\UserLeaveMarryRoom.cs" />
     <Compile Include="Game.Server.Packets\Client\UserLeaveSceneHandler.cs" />
     <Compile Include="Game.Server.Packets\Client\UserLoginHandler.cs" />
+    <Compile Include="Game.Server.Packets\Client\LoginPacketReader.cs" />
     <Compile Include="Game.Server.Packets\Client\UserLuckyNumHandler.cs" />
     <Compile Include="Game.Server.Packets\Client\UserPresentGoodsHandler.cs" />
     <Compile Include="Game.Server.Packets\Client\UserPrivateChatHandler.cs" />

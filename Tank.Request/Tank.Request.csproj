@@ -208,6 +208,8 @@
     <Compile Include="Tank.Request\petskilltemplateinfo.cs" />
     <Compile Include="Tank.Request\PlayerManager.cs" />
     <Compile Include="Tank.Request\QuestList.cs" />
+    <Compile Include="Tank.Request\QuestListV92.cs" />
+    <Compile Include="Tank.Request\NoviceNodeDataV92.cs" />
     <Compile Include="Tank.Request\RenameConsortiaName.cs" />
     <Compile Include="Tank.Request\RenameNick.cs" />
     <Compile Include="Tank.Request\runetemplatelist.cs" />

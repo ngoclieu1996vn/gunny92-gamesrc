@@ -18,6 +18,7 @@ namespace Game.Server.Packets.Client
             {
                 if (client.Player == null)
                 {
+                    LoginPacketReader.Prepare(packet, WorldMgr.RsaCryptor.KeySize / 8);
                     int version = packet.ReadInt();
                     int clientType = packet.ReadInt();
                     if (clientType != 69)

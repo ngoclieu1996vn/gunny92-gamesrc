@@ -948,7 +948,7 @@ namespace Game.Base.Packets
                 packet.WriteInt(m_gameClient.Player.PlayerCharacter.explorerManualInfo.MagicResistance);//_loc3_.manualProInfo.pro_MagicResistance = _loc2_.readInt();
                 packet.WriteInt(m_gameClient.Player.PlayerCharacter.explorerManualInfo.Stamina);//_loc3_.manualProInfo.pro_Stamina = _loc2_.readInt();
                 #endregion
-                SendTCP(packet);
+                SendTCP(LoginResponseV92.Upgrade(packet, m_gameClient.Player.PlayerCharacter.GiftToken));
 			}
 		}
 
@@ -1057,7 +1057,7 @@ namespace Game.Base.Packets
 			packet.WriteInt(info.damageScores);//damageScore
 			packet.WriteInt(info.myHonor);//myHonor
 			packet.WriteInt(info.jampsCurrency);//ExploreManual
-			SendTCP(packet);
+			SendTCP(LoginResponseV92.Upgrade(packet, info.GiftToken));
 		}
 
 		public GSPacketIn SendUpdatePublicPlayer(PlayerInfo info, UserMatchInfo matchInfo, UsersExtraInfo extraInfo)
