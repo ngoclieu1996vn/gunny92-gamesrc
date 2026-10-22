@@ -18,6 +18,13 @@ Login also sends packet 142 before packet 1 to initialize King Bless as inactive
 with an expired date. The current client dereferences this date while creating
 its hall toolbar, even when no subscription is active. This does not grant buffs.
 
+`HallSceneV92` handles authenticated packet 262 requests for the hall's online
+players. Its response initializes the client's own walking character even when
+no peers are online. Public peer appearance and guild data come from the current
+server session list, bounded to 50 entries. Hall movement runs on the client;
+hall coordinates never overwrite combat position or persisted player data.
+Exceptions and disconnected sessions are contained at this compatibility hook.
+
 `QuestListV92` regenerates the quest cache from the existing database. It adds
 the `Rate` metadata from `SP_Server_Config`, `RewardBindMoney`, and the five
 client reward-count fields. Counts remain equal to the fixed amount granted

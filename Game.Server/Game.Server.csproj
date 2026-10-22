@@ -165,6 +165,7 @@
     <Compile Include="Consortia.cs" />
     <Compile Include="Game.Base.Packets\AbstractPacketLib.cs" />
     <Compile Include="Game.Base.Packets\LoginResponseV92.cs" />
+    <Compile Include="Game.Base.Packets\HallSceneV92.cs" />
     <Compile Include="Game.Base.Packets\IPacketLib.cs" />
     <Compile Include="Game.Base.Packets\PacketLibAttribute.cs" />
     <Compile Include="Game.Base.Packets\PacketProcessor.cs" />

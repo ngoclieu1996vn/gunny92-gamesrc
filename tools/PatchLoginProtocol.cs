@@ -67,7 +67,62 @@ public static class PatchLoginProtocol
             foreach (var instruction in prefix)
                 il.InsertBefore(start, instruction);
             var responseSource = reader.MainModule.GetType("Game.Server.Packets.LoginResponseV92");
-            var responseType = new TypeDefinition("Game.Server.Packets", "LoginResponseV92",
+            var methods = CopyStaticType(module, responseSource);
+            var library = module.GetType("Game.Base.Packets.AbstractPacketLib");
+            if (library == null) library = module.Types.Single(type => type.Name == "AbstractPacketLib");
+            var privateInfo = library.Methods.Single(value => value.Name == "SendUpdatePrivateInfo");
+            var giftGetter = (MethodReference)privateInfo.Body.Instructions.First(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "get_GiftToken").Operand;
+            var login = library.Methods.Single(value => value.Name == "SendLoginSuccess");
+            var clientField = (FieldReference)login.Body.Instructions.First(value => value.OpCode == OpCodes.Ldfld).Operand;
+            var playerGetter = (MethodReference)login.Body.Instructions.First(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "get_Player").Operand;
+            var characterGetter = (MethodReference)login.Body.Instructions.First(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "get_PlayerCharacter").Operand;
+            foreach (var sendMethod in new[] { login, privateInfo })
+            {
+                var send = sendMethod.Body.Instructions.Single(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "SendTCP");
+                var editor = sendMethod.Body.GetILProcessor();
+                if (sendMethod == login)
+                {
+                    var packetLoad = send.Previous;
+                    var sendStart = packetLoad.Previous;
+                    if (sendStart.OpCode != OpCodes.Ldarg_0 || packetLoad.OpCode != OpCodes.Ldloc_1)
+                        throw new InvalidOperationException("Unexpected login response local layout.");
+                    var packetType = module.ImportReference(responseSource.Methods.Single(value => value.Name == "Upgrade").ReturnType);
+                    var idGetter = new MethodReference("get_ClientID", module.TypeSystem.Int32, packetType) { HasThis = true };
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Ldarg_0));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Ldloc_1));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Callvirt, idGetter));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Call, methods[responseSource.Methods.Single(value => value.Name == "CreateKingBlessState")]));
+                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Call, (MethodReference)send.Operand));
+                    editor.InsertBefore(send, Instruction.Create(OpCodes.Ldarg_0));
+                    editor.InsertBefore(send, Instruction.Create(OpCodes.Ldfld, clientField));
+                    editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, playerGetter));
+                    editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, characterGetter));
+                }
+                else editor.InsertBefore(send, Instruction.Create(OpCodes.Ldarg_1));
+                editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, giftGetter));
+                editor.InsertBefore(send, Instruction.Create(OpCodes.Call, methods[responseSource.Methods.Single(value => value.Name == "Upgrade")]));
+            }
+            var hallSource = reader.MainModule.GetType("Game.Server.Packets.HallSceneV92");
+            var hallMethods = CopyStaticType(module, hallSource);
+            var processor = module.GetType("Game.Base.Packets.PacketProcessor");
+            var handle = processor.Methods.Single(value => value.Name == "HandlePacket");
+            var beginning = handle.Body.Instructions[0];
+            var processorIl = handle.Body.GetILProcessor();
+            var hook = new[] {
+                Instruction.Create(OpCodes.Ldarg_0),
+                Instruction.Create(OpCodes.Ldfld, processor.Fields.Single(value => value.Name == "m_client")),
+                Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Call, hallMethods[hallSource.Methods.Single(value => value.Name == "TryHandle")]),
+                Instruction.Create(OpCodes.Brfalse, beginning), Instruction.Create(OpCodes.Ret) };
+            foreach (var instruction in hook) processorIl.InsertBefore(beginning, instruction);
+            target.Write(args[2]);
+            Console.WriteLine("Patched login framing; original RSA validation and account authentication retained.");
+        }
+        return 0;
+    }
+    private static Dictionary<MethodDefinition, MethodDefinition> CopyStaticType(ModuleDefinition module, TypeDefinition responseSource)
+    {
+            var responseType = new TypeDefinition(responseSource.Namespace, responseSource.Name,
                 TypeAttributes.Public | TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                 module.TypeSystem.Object);
             module.Types.Add(responseType);
@@ -111,45 +166,17 @@ public static class PatchLoginProtocol
                     else if (operand is TypeReference) operand = module.ImportReference((TypeReference)operand);
                     map[item].Operand = operand;
                 }
-                if (from.Body.ExceptionHandlers.Count != 0) throw new InvalidOperationException("Response adapter must not contain exception handlers.");
-            }
-            var library = module.GetType("Game.Base.Packets.AbstractPacketLib");
-            if (library == null) library = module.Types.Single(type => type.Name == "AbstractPacketLib");
-            var privateInfo = library.Methods.Single(value => value.Name == "SendUpdatePrivateInfo");
-            var giftGetter = (MethodReference)privateInfo.Body.Instructions.First(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "get_GiftToken").Operand;
-            var login = library.Methods.Single(value => value.Name == "SendLoginSuccess");
-            var clientField = (FieldReference)login.Body.Instructions.First(value => value.OpCode == OpCodes.Ldfld).Operand;
-            var playerGetter = (MethodReference)login.Body.Instructions.First(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "get_Player").Operand;
-            var characterGetter = (MethodReference)login.Body.Instructions.First(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "get_PlayerCharacter").Operand;
-            foreach (var sendMethod in new[] { login, privateInfo })
-            {
-                var send = sendMethod.Body.Instructions.Single(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "SendTCP");
-                var editor = sendMethod.Body.GetILProcessor();
-                if (sendMethod == login)
+                foreach (var region in from.Body.ExceptionHandlers)
                 {
-                    var packetLoad = send.Previous;
-                    var sendStart = packetLoad.Previous;
-                    if (sendStart.OpCode != OpCodes.Ldarg_0 || packetLoad.OpCode != OpCodes.Ldloc_1)
-                        throw new InvalidOperationException("Unexpected login response local layout.");
-                    var packetType = module.ImportReference(responseSource.Methods.Single(value => value.Name == "Upgrade").ReturnType);
-                    var idGetter = new MethodReference("get_ClientID", module.TypeSystem.Int32, packetType) { HasThis = true };
-                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Ldarg_0));
-                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Ldloc_1));
-                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Callvirt, idGetter));
-                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Call, methods[responseSource.Methods.Single(value => value.Name == "CreateKingBlessState")]));
-                    editor.InsertBefore(sendStart, Instruction.Create(OpCodes.Call, (MethodReference)send.Operand));
-                    editor.InsertBefore(send, Instruction.Create(OpCodes.Ldarg_0));
-                    editor.InsertBefore(send, Instruction.Create(OpCodes.Ldfld, clientField));
-                    editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, playerGetter));
-                    editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, characterGetter));
+                    to.Body.ExceptionHandlers.Add(new ExceptionHandler(region.HandlerType) {
+                        TryStart = map[region.TryStart], TryEnd = region.TryEnd == null ? null : map[region.TryEnd],
+                        HandlerStart = map[region.HandlerStart], HandlerEnd = region.HandlerEnd == null ? null : map[region.HandlerEnd],
+                        FilterStart = region.FilterStart == null ? null : map[region.FilterStart],
+                        CatchType = region.CatchType == null ? null : module.ImportReference(region.CatchType)
+                    });
                 }
-                else editor.InsertBefore(send, Instruction.Create(OpCodes.Ldarg_1));
-                editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, giftGetter));
-                editor.InsertBefore(send, Instruction.Create(OpCodes.Call, methods[responseSource.Methods.Single(value => value.Name == "Upgrade")]));
             }
-            target.Write(args[2]);
-            Console.WriteLine("Patched login framing; original RSA validation and account authentication retained.");
-        }
-        return 0;
+        return methods;
     }
+
 }

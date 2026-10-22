@@ -12,11 +12,14 @@ $baseDll = Join-Path $GameRoot 'Server/road/game.base.dll'
 $reader = Join-Path $GameRoot 'gameSrc/Game.Server/Game.Server.Packets/Client/LoginPacketReader.cs'
 $sourceRoot = Join-Path $GameRoot 'gameSrc'
 function Compile([string[]]$CompilerArgs) {
-    & $compiler @CompilerArgs
+    & $compiler /define:TRACE @CompilerArgs
     if ($LASTEXITCODE -ne 0) { throw 'Compatibility compilation failed.' }
 }
 Compile @('/nologo', '/target:library', "/out:$output/LoginPacketReader.dll", "/reference:$baseDll", $reader,
-    (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/LoginResponseV92.cs'))
+    "/reference:$ServerAssembly", "/reference:$GameRoot/Server/road/Game.Logic.dll",
+    "/reference:$GameRoot/Request/bin/SqlDataProvider.dll",
+    (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/LoginResponseV92.cs'),
+    (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/HallSceneV92.cs'))
 Compile @('/nologo', '/target:exe', "/out:$output/LoginPacketReaderTests.exe", "/reference:$baseDll",
     $reader, (Join-Path $sourceRoot 'tests/LoginPacketReaderTests.cs'))
 Copy-Item -LiteralPath $baseDll -Destination (Join-Path $output 'Game.Base.dll') -Force
@@ -28,6 +31,16 @@ Compile @('/nologo', '/target:exe', "/out:$output/LoginResponseTests.exe", "/ref
     (Join-Path $sourceRoot 'tests/LoginResponseTests.cs'))
 & (Join-Path $output 'LoginResponseTests.exe')
 if ($LASTEXITCODE -ne 0) { throw 'Login response regression tests failed.' }
+Compile @('/nologo', '/target:exe', "/out:$output/HallSceneTests.exe", "/reference:$baseDll",
+    "/reference:$ServerAssembly", "/reference:$GameRoot/Server/road/Game.Logic.dll",
+    "/reference:$GameRoot/Request/bin/SqlDataProvider.dll",
+    (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/HallSceneV92.cs'),
+    (Join-Path $sourceRoot 'tests/HallSceneTests.cs'))
+Copy-Item -LiteralPath $ServerAssembly -Destination (Join-Path $output 'Game.Server.dll') -Force
+Copy-Item -LiteralPath (Join-Path $GameRoot 'Server/road/Game.Logic.dll'), (Join-Path $GameRoot 'Request/bin/SqlDataProvider.dll') -Destination $output -Force
+Copy-Item -LiteralPath (Join-Path $GameRoot 'Server/road/Bussiness.dll') -Destination $output -Force
+& (Join-Path $output 'HallSceneTests.exe')
+if ($LASTEXITCODE -ne 0) { throw 'Hall scene regression tests failed.' }
 Compile @('/nologo', '/target:exe', "/out:$output/PatchLoginProtocol.exe", "/reference:$CecilDll",
     (Join-Path $sourceRoot 'tools/PatchLoginProtocol.cs'))
 Copy-Item -LiteralPath $CecilDll -Destination (Join-Path $output 'Mono.Cecil.dll') -Force

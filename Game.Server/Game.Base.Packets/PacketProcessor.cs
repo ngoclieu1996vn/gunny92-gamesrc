@@ -30,6 +30,7 @@ namespace Game.Base.Packets
 
 		public void HandlePacket(GSPacketIn packet)
 		{
+			if (Game.Server.Packets.HallSceneV92.TryHandle(m_client, packet)) return;
 			int code = packet.Code;
 			Statistics.BytesIn += packet.Length;
 			Statistics.PacketsIn++;
