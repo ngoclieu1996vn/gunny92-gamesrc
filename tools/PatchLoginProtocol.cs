@@ -102,6 +102,37 @@ public static class PatchLoginProtocol
                 editor.InsertBefore(send, Instruction.Create(OpCodes.Callvirt, giftGetter));
                 editor.InsertBefore(send, Instruction.Create(OpCodes.Call, methods[responseSource.Methods.Single(value => value.Name == "Upgrade")]));
             }
+            var roomSource = reader.MainModule.GetType("Game.Server.Packets.RoomResponseV92");
+            var roomMethods = CopyStaticType(module, roomSource);
+            foreach (var entry in new[] { new[] {"SendRoomCreate", "UpgradeCreate"}, new[] {"SendRoomPlayerAdd", "UpgradePlayer"} })
+            {
+                var sendMethod = library.Methods.Single(value => value.Name == entry[0]);
+                var send = sendMethod.Body.Instructions.Single(value => value.Operand is MethodReference && ((MethodReference)value.Operand).Name == "SendTCP");
+                var load = send.Previous;
+                var sendStart = load.Previous;
+                if (sendStart.OpCode != OpCodes.Ldarg_0) throw new InvalidOperationException("Unexpected room send layout.");
+                var loadCopy = Instruction.Create(OpCodes.Nop); loadCopy.OpCode = load.OpCode; loadCopy.Operand = load.Operand;
+                var store = Instruction.Create(OpCodes.Nop);
+                if (load.OpCode == OpCodes.Ldloc_0) store.OpCode = OpCodes.Stloc_0;
+                else if (load.OpCode == OpCodes.Ldloc_1) store.OpCode = OpCodes.Stloc_1;
+                else if (load.OpCode == OpCodes.Ldloc_2) store.OpCode = OpCodes.Stloc_2;
+                else if (load.OpCode == OpCodes.Ldloc_3) store.OpCode = OpCodes.Stloc_3;
+                else if (load.OpCode == OpCodes.Ldloc || load.OpCode == OpCodes.Ldloc_S) { store.OpCode = OpCodes.Stloc; store.Operand = load.Operand; }
+                else throw new InvalidOperationException("Room packet must be held in a local.");
+                var prefixRoom = new[] { loadCopy,
+                    Instruction.Create(OpCodes.Call, roomMethods[roomSource.Methods.Single(value => value.Name == entry[1])]), store };
+                foreach (var instruction in sendMethod.Body.Instructions)
+                    if (Object.ReferenceEquals(instruction.Operand, sendStart)) instruction.Operand = prefixRoom[0];
+                foreach (var instruction in prefixRoom) sendMethod.Body.GetILProcessor().InsertBefore(sendStart, instruction);
+                // The adapted local is also returned to BaseRoom for broadcasts to peers.
+                foreach (var instruction in sendMethod.Body.Instructions)
+                    if (instruction.OpCode.OperandType == OperandType.ShortInlineBrTarget)
+                    {
+                        string name = instruction.OpCode.Name.Substring(0, instruction.OpCode.Name.Length - 2);
+                        instruction.OpCode = typeof(OpCodes).GetFields().Where(field => field.FieldType == typeof(OpCode))
+                            .Select(field => (OpCode)field.GetValue(null)).Single(value => value.Name == name);
+                    }
+            }
             var hallSource = reader.MainModule.GetType("Game.Server.Packets.HallSceneV92");
             var hallMethods = CopyStaticType(module, hallSource);
             var processor = module.GetType("Game.Base.Packets.PacketProcessor");

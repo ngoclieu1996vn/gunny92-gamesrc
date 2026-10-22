@@ -24,6 +24,15 @@ no peers are online. Public peer appearance and guild data come from the current
 server session list, bounded to 50 entries. Hall movement runs on the client;
 hall coordinates never overwrite combat position or persisted player data.
 Exceptions and disconnected sessions are contained at this compatibility hook.
+Hall visibility requests (262/7) receive the requested hide/show acknowledgement.
+Showing also refreshes the peer list after the acknowledgement because the client
+discards its peer objects when hiding; its own walking character is retained.
+
+`RoomResponseV92` adapts legacy room creation (94/0) and player addition (94/4)
+responses to the current client. It preserves actual room, character, spouse,
+and pet/skill data and supplies inactive defaults for newer optional fields.
+Both the direct response and the packet returned for broadcasts use the adapted
+payload. Regression tests cover married/unmarried players with and without pets.
 
 `QuestListV92` regenerates the quest cache from the existing database. It adds
 the `Rate` metadata from `SP_Server_Config`, `RewardBindMoney`, and the five

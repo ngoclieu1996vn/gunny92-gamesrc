@@ -15,6 +15,14 @@ class HallSceneTests
     }
     static int Main()
     {
+        foreach (bool hidden in new[] {true, false})
+        {
+            var visibility = HallSceneV92.CreateVisibility(227, hidden);
+            Equal(visibility.ClientID,227,"visibility recipient");
+            visibility.Offset=20;Equal(visibility.ReadByte(),(byte)7,"visibility subcommand");
+            Equal(visibility.ReadBoolean(),hidden,"visibility acknowledgement");
+            Equal(visibility.Offset,visibility.Length,"visibility payload end");
+        }
         Equal(HallSceneV92.TryHandle(null, new GSPacketIn(262)), true, "unauthenticated hall request ignored");
         Equal(HallSceneV92.TryHandle(null, new GSPacketIn(1)), false, "unrelated packet retained");
         var empty = HallSceneV92.CreateSceneList(227, new PlayerInfo[0]);

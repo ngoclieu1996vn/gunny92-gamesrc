@@ -19,6 +19,7 @@ Compile @('/nologo', '/target:library', "/out:$output/LoginPacketReader.dll", "/
     "/reference:$ServerAssembly", "/reference:$GameRoot/Server/road/Game.Logic.dll",
     "/reference:$GameRoot/Request/bin/SqlDataProvider.dll",
     (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/LoginResponseV92.cs'),
+    (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/RoomResponseV92.cs'),
     (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/HallSceneV92.cs'))
 Compile @('/nologo', '/target:exe', "/out:$output/LoginPacketReaderTests.exe", "/reference:$baseDll",
     $reader, (Join-Path $sourceRoot 'tests/LoginPacketReaderTests.cs'))
@@ -31,6 +32,11 @@ Compile @('/nologo', '/target:exe', "/out:$output/LoginResponseTests.exe", "/ref
     (Join-Path $sourceRoot 'tests/LoginResponseTests.cs'))
 & (Join-Path $output 'LoginResponseTests.exe')
 if ($LASTEXITCODE -ne 0) { throw 'Login response regression tests failed.' }
+Compile @('/nologo', '/target:exe', "/out:$output/RoomResponseTests.exe", "/reference:$baseDll",
+    (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/RoomResponseV92.cs'),
+    (Join-Path $sourceRoot 'tests/RoomResponseTests.cs'))
+& (Join-Path $output 'RoomResponseTests.exe')
+if ($LASTEXITCODE -ne 0) { throw 'Room response regression tests failed.' }
 Compile @('/nologo', '/target:exe', "/out:$output/HallSceneTests.exe", "/reference:$baseDll",
     "/reference:$ServerAssembly", "/reference:$GameRoot/Server/road/Game.Logic.dll",
     "/reference:$GameRoot/Request/bin/SqlDataProvider.dll",

@@ -8,6 +8,12 @@ namespace Game.Server.Packets
 {
     public static class HallSceneV92
     {
+        public static GSPacketIn CreateVisibility(int playerId, bool hidden)
+        {
+            var response = new GSPacketIn(262, playerId);
+            response.WriteByte(7); response.WriteBoolean(hidden);
+            return response;
+        }
         public static GSPacketIn CreateSceneList(int playerId, PlayerInfo[] peers)
         {
             var packet = new GSPacketIn(262, playerId);
@@ -41,20 +47,35 @@ namespace Game.Server.Packets
                 byte command = packet.ReadByte();
                 if (command == 0 && packet.DataLeft == 0)
                 {
-                    int id = client.Player.PlayerCharacter.ID;
-                    var peers = new List<PlayerInfo>();
-                    foreach (var player in WorldMgr.GetAllPlayersNoGame())
-                    {
-                        if (player.PlayerCharacter != null && player.PlayerCharacter.ID != id) peers.Add(player.PlayerCharacter);
-                        if (peers.Count == 50) break;
-                    }
-                    client.SendTCP(CreateSceneList(id, peers.ToArray()));
+                    client.SendTCP(CurrentSceneList(client));
+                }
+                else if (command == 7 && packet.DataLeft == 1)
+                {
+                    byte flag = packet.ReadByte();
+                    if (flag > 1) return true;
+                    bool hidden = flag != 0;
+                    client.SendTCP(CreateVisibility(client.Player.PlayerCharacter.ID, hidden));
+                    // The client cleared its peer dictionaries when hiding them. On
+                    // showing, replenish after the acknowledgement, while retaining self.
+                    if (!hidden) client.SendTCP(CurrentSceneList(client));
                 }
             }
             catch (Exception error) { Trace.TraceWarning("Hall response failed: {0}", error.GetType().Name); }
             // Movement is simulated locally by this client. Do not reuse combat X/Y
             // fields for hall coordinates or allow this packet to mutate character data.
             return true;
+        }
+
+        private static GSPacketIn CurrentSceneList(GameClient client)
+        {
+            int id = client.Player.PlayerCharacter.ID;
+            var peers = new List<PlayerInfo>();
+            foreach (var player in WorldMgr.GetAllPlayersNoGame())
+            {
+                if (player.PlayerCharacter != null && player.PlayerCharacter.ID != id) peers.Add(player.PlayerCharacter);
+                if (peers.Count == 50) break;
+            }
+            return CreateSceneList(id, peers.ToArray());
         }
     }
 }

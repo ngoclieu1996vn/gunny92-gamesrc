@@ -1443,6 +1443,7 @@ namespace Game.Base.Packets
 					packet.WriteInt(int.Parse(skill.Split(',')[0]));
 				}
 			}
+			packet = RoomResponseV92.UpgradePlayer(packet);
 			SendTCP(packet);
 			return packet;
 		}
@@ -1513,6 +1514,7 @@ namespace Game.Base.Packets
 			packet.WriteBoolean(room.isWithinLeageTime);
 			packet.WriteBoolean(room.isOpenBoss);
 			packet.WriteString(room.Pic);
+			packet = RoomResponseV92.UpgradeCreate(packet);
 			SendTCP(packet);
 			return packet;
 		}
