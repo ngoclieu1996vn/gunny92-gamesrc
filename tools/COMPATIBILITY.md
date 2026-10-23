@@ -88,6 +88,23 @@ damage factors and pet attack records remain unchanged. The AI still consumes
 the original payload. Regression tests parse single/triple shots, both wind
 signs, mixed action types and pet attacks to the exact packet end.
 
+PvP health packet 91/11 uses the same relay gate. GameView.playerBlood reads
+64-bit health, the original change amount and a new optional context. The legacy
+writer sends 32-bit health and no context. UpgradeHealth sign-extends health,
+preserves damage/healing and adds an inactive context; otherwise a death update
+queued during loading can abort combat entry with Error #2030. Tests cover live,
+dead, signed and maximum health, healing/damage, framing and PvP-only gating.
+
+PvP result packet 91/100 uses the same Match/Elite relay gate. The current
+`GameOverAction.readInfo` needs two experience bonus fields, two offer bonus
+fields, a double-reward flag, prestige, kill count and two result trailers
+that the legacy writer does not emit. `BattleResponseV92.UpgradeOver` preserves
+the actual winner, grade, GP, experience/offer breakdown, card count and guild
+riches; it copies TotalKill into the added kill count and leaves unsupported
+bonuses inactive. Without these fields, the client reads beyond the legacy
+result packet and never reaches its results/return-to-room action. Regression
+tests parse multiple players and ties to the exact packet end, reject malformed
+payloads, and verify the relay leaves PvE and unknown rooms unchanged.
 `PetFormsV92` handles the current bag's prerequisite query 68/24 before the
 legacy pet dispatcher reads its command. It replies with zero permanent and
 timed advanced forms, which this backend does not implement. Unrelated pet

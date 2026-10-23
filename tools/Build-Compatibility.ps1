@@ -98,6 +98,14 @@ if ($FightAssembly) {
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),(Join-Path $sourceRoot 'tests/BattleShootTests.cs'))
     & "$output/BattleShootTests.exe"
     if($LASTEXITCODE -ne 0){throw 'Battle shoot regression tests failed.'}
+    Compile @('/nologo','/target:exe',"/out:$output/BattleHealthTests.exe","/reference:$baseDll",
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),(Join-Path $sourceRoot 'tests/BattleHealthTests.cs'))
+    & "$output/BattleHealthTests.exe"
+    if($LASTEXITCODE -ne 0){throw 'Battle health regression tests failed.'}
+    Compile @('/nologo','/target:exe',"/out:$output/BattleOverTests.exe","/reference:$baseDll",
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),(Join-Path $sourceRoot 'tests/BattleOverTests.cs'))
+    & "$output/BattleOverTests.exe"
+    if($LASTEXITCODE -ne 0){throw 'Battle result regression tests failed.'}
     Compile @('/nologo','/target:exe',"/out:$output/PetFormsTests.exe","/reference:$baseDll","/reference:$ServerAssembly",
         "/reference:$GameRoot/Server/road/Game.Logic.dll","/reference:$GameRoot/Request/bin/SqlDataProvider.dll",
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/PetFormsV92.cs'),(Join-Path $sourceRoot 'tests/PetFormsTests.cs'))

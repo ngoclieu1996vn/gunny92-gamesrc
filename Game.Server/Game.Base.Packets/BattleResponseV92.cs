@@ -6,6 +6,34 @@ namespace Game.Server.Packets
     // Applied only on Fight -> Road -> human client; AI's legacy reader is unchanged.
     public static class BattleResponseV92
     {
+        public static GSPacketIn UpgradeHealth(GSPacketIn p)
+        {
+            if(p.Code!=91 || p.Length<=20 || p.Buffer[20]!=11)return p;
+            int c=20;var q=new GSPacketIn(p.Code,p.ClientID);q.Parameter1=p.Parameter1;q.Parameter2=p.Parameter2;
+            Copy(p,q,ref c,"bb");int blood=Int(p,c);q.WriteInt(blood<0?-1:0);
+            Copy(p,q,ref c,"ii");q.WriteInt(0); // current client reads long health and an optional damage context
+            if(c!=p.Length)throw new InvalidDataException("Unexpected legacy health trailer.");
+            return q;
+        }
+        public static GSPacketIn UpgradeOver(GSPacketIn p)
+        {
+            if(p.Code!=91 || p.Length<=20 || p.Buffer[20]!=100)return p;
+            int c=20;var q=new GSPacketIn(p.Code,p.ClientID,Math.Max(10240,p.Length));q.Parameter1=p.Parameter1;q.Parameter2=p.Parameter2;
+            Copy(p,q,ref c,"bi");int players=Int(p,c);Copy(p,q,ref c,"i");
+            if(players<0 || players>64)throw new InvalidDataException("Invalid battle result player count.");
+            for(int i=0;i<players;i++)
+            {
+                Copy(p,q,ref c,"ib");int kills=Int(p,c+8);
+                for(int j=0;j<17;j++)Copy(p,q,ref c,"i"); // grade, GP and actual experience breakdown
+                q.WriteInt(0);q.WriteInt(0); // no CSM or well experience bonus
+                for(int j=0;j<8;j++)Copy(p,q,ref c,"i"); // actual offer breakdown
+                q.WriteInt(0);q.WriteInt(0); // no CSM or well offer bonus
+                Copy(p,q,ref c,"i");q.WriteBoolean(false);q.WriteInt(0);q.WriteInt(kills);
+            }
+            Copy(p,q,ref c,"i");q.WriteInt(0);q.WriteInt(0); // guild riches, inactive result trailers
+            if(c!=p.Length)throw new InvalidDataException("Unexpected legacy battle result trailer.");
+            return q;
+        }
         public static GSPacketIn UpgradeShoot(GSPacketIn p)
         {
             if(p.Code!=91 || p.Length<=20 || p.Buffer[20]!=2)return p;

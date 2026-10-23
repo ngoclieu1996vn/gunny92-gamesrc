@@ -25,6 +25,20 @@ class MatchmakingTests
         var relayServer=new BattleServer(1,"127.0.0.1",1,"");
         foreach(var field in typeof(BattleServer).GetFields(BindingFlags.NonPublic|BindingFlags.Instance))
             if(field.FieldType==typeof(Dictionary<int,BaseRoom>))((Dictionary<int,BaseRoom>)field.GetValue(relayServer)).Add(77,room);
+        var healthPacket=new GSPacketIn(91);healthPacket.WriteByte(11);healthPacket.WriteByte(0);healthPacket.WriteInt(1200);healthPacket.WriteInt(300);
+        Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(healthPacket,null,77),healthPacket),"Unknown health room must stay unchanged.");
+        room.RoomType=eRoomType.Dungeon;
+        Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(healthPacket,relayServer,77),healthPacket),"PvE health must retain its existing schema.");
+        foreach(var kind in new[]{eRoomType.Match,eRoomType.EliteGameScore,eRoomType.EliteGameChampion}){
+            room.RoomType=kind;Assert(!Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(healthPacket,relayServer,77),healthPacket),"Known PvP room receives current health schema.");}
+        room.RoomType=eRoomType.Match;
+        var overPacket=new GSPacketIn(91);overPacket.WriteByte(100);overPacket.WriteInt(0);overPacket.WriteInt(0);overPacket.WriteInt(0);
+        Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(overPacket,null,77),overPacket),"Unknown result room must stay unchanged.");
+        room.RoomType=eRoomType.Dungeon;
+        Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(overPacket,relayServer,77),overPacket),"PvE result must not use PvP schema.");
+        foreach(var kind in new[]{eRoomType.Match,eRoomType.EliteGameScore,eRoomType.EliteGameChampion}){
+            room.RoomType=kind;Assert(!Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(overPacket,relayServer,77),overPacket),"Known PvP room receives result schema.");}
+        room.RoomType=eRoomType.Match;
         var startPacket=new GSPacketIn(91);startPacket.WriteByte(99);startPacket.WriteInt(0);startPacket.WriteDateTime(new DateTime(2026,1,1));
         var turnPacket=new GSPacketIn(91);turnPacket.WriteByte(6);turnPacket.WriteBoolean(false);turnPacket.WriteByte(0);turnPacket.WriteByte(0);turnPacket.WriteByte(0);turnPacket.WriteBoolean(false);
         foreach(int n in new[]{20,0,0,1})turnPacket.WriteInt(n);
