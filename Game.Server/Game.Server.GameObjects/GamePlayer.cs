@@ -5639,6 +5639,7 @@ namespace Game.Server.GameObjects
 			{
 				FightPower = int.MaxValue;
 			}
+			FightPower = Game.Server.Packets.MagicPowerV92.Apply(this, FightPower, baseAttack);
 			PlayerCharacter.FightPower = FightPower;
             // tan vuong
             try

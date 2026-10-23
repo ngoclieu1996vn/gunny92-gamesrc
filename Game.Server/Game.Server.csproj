@@ -171,6 +171,9 @@
     <Compile Include="Game.Base.Packets\BattleResponseV92.cs" />
     <Compile Include="Game.Base.Packets\PetFormsV92.cs" />
     <Compile Include="Game.Base.Packets\MailAttachmentV92.cs" />
+    <Compile Include="Game.Base.Packets\MagicPowerV92.cs" />
+    <Compile Include="Game.Base.Packets\PublicStatsV92.cs" />
+    <Compile Include="Game.Base.Packets\PlayerPropertyResponseV92.cs" />
     <Compile Include="Game.Base.Packets\CaptchaV92.cs" />
     <Compile Include="Game.Base.Packets\RoomResponseV92.cs" />
     <Compile Include="Game.Base.Packets\IPacketLib.cs" />

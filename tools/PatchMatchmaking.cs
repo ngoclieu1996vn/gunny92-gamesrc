@@ -28,6 +28,40 @@ class PatchMatchmaking
         {
             var m=road.MainModule; const string h="Game.Server.Packets.MatchmakingV92";
             if(m.AssemblyReferences.Any(a=>a.Name=="Game.Matchmaking.V92"))throw new Exception("Already patched Road input.");
+            var packetLib=m.GetType("Game.Base.Packets.AbstractPacketLib");
+            var publicStats=packetLib.Methods.Single(x=>x.Name=="SendUpdatePublicPlayer");
+            var publicSend=publicStats.Body.Instructions.Single(x=>x.Operand is MethodReference&&((MethodReference)x.Operand).Name=="SendTCP");
+            var loadPacket=publicSend.Previous;var publicStart=loadPacket.Previous;
+            if(publicStart.OpCode!=OpCodes.Ldarg_0)throw new Exception("Unexpected public stats send layout.");
+            VariableDefinition packetVariable;
+            if(loadPacket.OpCode==OpCodes.Ldloc_0)packetVariable=publicStats.Body.Variables[0];
+            else if(loadPacket.OpCode==OpCodes.Ldloc_1)packetVariable=publicStats.Body.Variables[1];
+            else if(loadPacket.Operand is VariableDefinition)packetVariable=(VariableDefinition)loadPacket.Operand;
+            else throw new Exception("Public stats packet must be local.");
+            var publicPrefix=new[]{Instruction.Create(OpCodes.Ldloc,packetVariable),Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.PublicStatsV92","UpgradePublic")),Instruction.Create(OpCodes.Stloc,packetVariable)};
+            foreach(var instruction in publicStats.Body.Instructions)if(Object.ReferenceEquals(instruction.Operand,publicStart))instruction.Operand=publicPrefix[0];
+            foreach(var instruction in publicPrefix)publicStats.Body.GetILProcessor().InsertBefore(publicStart,instruction);
+            ExpandBranches(publicStats);
+            var propertyWriter=packetLib.Methods.Single(x=>x.Name=="SendUpdatePlayerProperty");
+            var originalPropertySend=(MethodReference)propertyWriter.Body.Instructions.Single(x=>x.Operand is MethodReference&&((MethodReference)x.Operand).Name=="SendTCP").Operand;
+            var createProperty=m.ImportReference(helper.MainModule.GetType("Game.Server.Packets.PlayerPropertyResponseV92").Methods.Single(x=>x.Name=="Create"&&x.Parameters.Count==2));
+            Body(propertyWriter,Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),Instruction.Create(OpCodes.Call,createProperty),
+                Instruction.Create(OpCodes.Stloc_0),Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Ldloc_0),Instruction.Create(OpCodes.Call,originalPropertySend),Instruction.Create(OpCodes.Ldloc_0),Instruction.Create(OpCodes.Ret));
+            propertyWriter.Body.InitLocals=true;propertyWriter.Body.Variables.Add(new VariableDefinition(createProperty.ReturnType));
+            var gamePlayer=m.GetType("Game.Server.GameObjects.GamePlayer");
+            var power=gamePlayer.Methods.Single(x=>x.Name=="UpdateFightPower");
+            var damageCall=power.Body.Instructions.Single(x=>x.Operand is MethodReference&&((MethodReference)x.Operand).Name=="GetBaseAttack");
+            if(damageCall.Next.OpCode!=OpCodes.Stloc_2)throw new Exception("Unexpected base damage local.");
+            var powerSet=power.Body.Instructions.Single(x=>x.Operand is MethodReference&&((MethodReference)x.Operand).Name=="set_FightPower");
+            var powerStart=powerSet.Previous.Previous.Previous.Previous;
+            if(powerStart.OpCode!=OpCodes.Ldarg_0)throw new Exception("Unexpected power assignment layout.");
+            var powerField=gamePlayer.Fields.Single(x=>x.Name=="FightPower");
+            var powerPrefix=new[]{Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Ldfld,powerField),
+                Instruction.Create(OpCodes.Ldloc,power.Body.Variables[2]),Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.MagicPowerV92","Apply")),Instruction.Create(OpCodes.Stfld,powerField)};
+            foreach(var instruction in power.Body.Instructions)if(Object.ReferenceEquals(instruction.Operand,powerStart))instruction.Operand=powerPrefix[0];
+            foreach(var instruction in powerPrefix)power.Body.GetILProcessor().InsertBefore(powerStart,instruction);
+            ExpandBranches(power);
             Body(m.GetType("Game.Base.Packets.AbstractPacketLib").Methods.Single(x=>x.Name=="SendCheckCode"),Instruction.Create(OpCodes.Ret));
             Body(m.GetType("Game.Server.Packets.Client.CheckCodeHandler").Methods.Single(x=>x.Name=="HandlePacket"),
                 Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),

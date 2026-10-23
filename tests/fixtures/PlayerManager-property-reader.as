@@ -1,0 +1,245 @@
+protected function __updatePlayerProperty(event:PkgEvent) : void
+      {
+         var _loc12_:int = 0;
+         var _loc20_:Object = null;
+         var _loc23_:int = 0;
+         var _loc4_:SoulMarkInfo = null;
+         var _loc17_:String = null;
+         var _loc6_:String = null;
+         var _loc8_:PackageIn = event.pkg;
+         var _loc5_:Array = ["Attack","Defence","Agility","Luck"];
+         var _loc7_:DictionaryData = new DictionaryData();
+         var _loc19_:DictionaryData = null;
+         var _loc16_:int = -1;
+         _loc16_ = _loc8_.readInt();
+         var _loc10_:int = _loc8_.readInt();
+         for each(var _loc15_ in _loc5_)
+         {
+            _loc19_ = _loc7_[_loc15_] = new DictionaryData();
+            _loc8_.readInt();
+            _loc19_["Texp"] = _loc8_.readInt();
+            _loc19_["Card"] = _loc8_.readInt();
+            _loc19_["Pet"] = _loc8_.readInt();
+            _loc19_["Suit"] = _loc8_.readInt();
+            _loc19_["gem"] = _loc8_.readInt();
+            _loc19_["Bead"] = _loc8_.readInt();
+            _loc19_["Avatar"] = _loc8_.readInt();
+            _loc19_["MagicStone"] = _loc8_.readInt();
+            _loc19_["Temple"] = _loc8_.readInt();
+            _loc19_["PetAtlas"] = _loc8_.readInt();
+            _loc19_["ElfEquip"] = _loc8_.readInt();
+            _loc19_["conExSkill"] = _loc8_.readInt();
+            _loc19_["conExSkill"] += _loc8_.readInt();
+         }
+         _loc19_ = _loc7_["MagicAttack"] = new DictionaryData();
+         _loc19_["MagicStone"] = _loc8_.readInt();
+         _loc19_["Horse"] = _loc8_.readInt();
+         _loc19_["HorsePicCherish"] = _loc8_.readInt();
+         _loc19_["Enchant"] = _loc8_.readInt();
+         _loc19_["Suit"] = _loc8_.readInt();
+         _loc19_["Texp"] = _loc8_.readInt();
+         _loc19_["Card"] = _loc8_.readInt();
+         _loc19_["Temple"] = 0;
+         _loc19_ = _loc7_["MagicDefence"] = new DictionaryData();
+         _loc19_["MagicStone"] = _loc8_.readInt();
+         _loc19_["Horse"] = _loc8_.readInt();
+         _loc19_["HorsePicCherish"] = _loc8_.readInt();
+         _loc19_["Enchant"] = _loc8_.readInt();
+         _loc19_["Suit"] = _loc8_.readInt();
+         _loc19_["Temple"] = _loc8_.readInt();
+         _loc19_["Texp"] = _loc8_.readInt();
+         _loc19_["Card"] = _loc8_.readInt();
+         _loc19_ = _loc7_["HP"] = new DictionaryData();
+         _loc8_.readInt();
+         _loc19_["Texp"] = _loc8_.readInt();
+         _loc19_["Pet"] = _loc8_.readInt();
+         _loc19_["Bead"] = _loc8_.readInt();
+         _loc19_["Suit"] = _loc8_.readInt();
+         _loc19_["gem"] = _loc8_.readInt();
+         _loc19_["Avatar"] = _loc8_.readInt();
+         _loc19_["Horse"] = _loc8_.readInt();
+         _loc19_["HorsePicCherish"] = _loc8_.readInt();
+         _loc19_["Temple"] = _loc8_.readInt();
+         _loc19_["ElfEquip"] = _loc8_.readInt();
+         _loc19_["conExSkill"] = _loc8_.readInt();
+         _loc19_["conExSkill"] += _loc8_.readInt();
+         _loc19_["petChar"] = _loc8_.readInt();
+         _loc7_["Damage"] = new DictionaryData();
+         _loc7_["Damage"]["Suit"] = _loc8_.readInt();
+         _loc7_["Armor"] = new DictionaryData();
+         _loc7_["Armor"]["Suit"] = _loc8_.readInt();
+         _loc7_["Damage"]["Bead"] = _loc8_.readInt();
+         _loc7_["Damage"]["Avatar"] = _loc8_.readInt();
+         _loc7_["Damage"]["Horse"] = _loc8_.readInt();
+         _loc7_["Damage"]["HorsePicCherish"] = _loc8_.readInt();
+         _loc7_["Damage"]["Texp"] = _loc8_.readInt();
+         _loc7_["Damage"]["ElfEquip"] = _loc8_.readInt();
+         _loc7_["Damage"]["petChar"] = _loc8_.readInt();
+         _loc7_["Damage"]["pet"] = _loc8_.readInt();
+         _loc7_["Armor"]["Bead"] = _loc8_.readInt();
+         _loc7_["Armor"]["Avatar"] = _loc8_.readInt();
+         _loc7_["Armor"]["Horse"] = _loc8_.readInt();
+         _loc7_["Armor"]["HorsePicCherish"] = _loc8_.readInt();
+         _loc7_["Armor"]["Temple"] = _loc8_.readInt();
+         _loc7_["Armor"]["Texp"] = _loc8_.readInt();
+         _loc7_["Armor"]["Pet"] = _loc8_.readInt();
+         _loc7_["Armor"]["petChar"] = _loc8_.readInt();
+         SyahManager.Instance.totalDamage = _loc8_.readInt();
+         SyahManager.Instance.totalArmor = _loc8_.readInt();
+         var _loc11_:PlayerInfo = findPlayer(_loc16_,_loc10_);
+         _loc11_.fineSuitExp = _loc8_.readInt();
+         _loc11_.cardAchievementHp = _loc8_.readInt();
+         _loc11_.cardAchievementDamage = _loc8_.readInt();
+         _loc11_.cardAchievementArmor = _loc8_.readInt();
+         _loc7_["Damage"]["mark"] = _loc8_.readInt();
+         _loc7_["Armor"]["mark"] = _loc8_.readInt();
+         _loc7_["Attack"]["mark"] = _loc8_.readInt();
+         _loc7_["Defence"]["mark"] = _loc8_.readInt();
+         _loc7_["Agility"]["mark"] = _loc8_.readInt();
+         _loc7_["Luck"]["mark"] = _loc8_.readInt();
+         _loc7_["MagicAttack"]["mark"] = _loc8_.readInt();
+         _loc7_["MagicDefence"]["mark"] = _loc8_.readInt();
+         _loc7_["HP"]["mark"] = _loc8_.readInt();
+         _loc11_.markDamage = _loc7_["Damage"]["mark"] = _loc8_.readInt();
+         _loc11_.markArmor = _loc7_["Armor"]["mark"] = _loc8_.readInt();
+         _loc7_["Attack"]["marKing"] = _loc8_.readInt();
+         _loc7_["Defence"]["marKing"] = _loc8_.readInt();
+         _loc7_["Agility"]["marKing"] = _loc8_.readInt();
+         _loc7_["Luck"]["marKing"] = _loc8_.readInt();
+         _loc7_["MagicAttack"]["marKing"] = _loc8_.readInt();
+         _loc7_["MagicDefence"]["marKing"] = _loc8_.readInt();
+         _loc7_["Attack"]["titleAdd"] = _loc8_.readInt();
+         _loc7_["Defence"]["titleAdd"] = _loc8_.readInt();
+         _loc7_["Agility"]["titleAdd"] = _loc8_.readInt();
+         _loc7_["Luck"]["titleAdd"] = _loc8_.readInt();
+         _loc7_["Attack"]["dig"] = _loc8_.readInt();
+         _loc7_["Defence"]["dig"] = _loc8_.readInt();
+         _loc7_["Agility"]["dig"] = _loc8_.readInt();
+         _loc7_["Luck"]["dig"] = _loc8_.readInt();
+         _loc7_["MagicAttack"]["dig"] = _loc8_.readInt();
+         _loc7_["MagicDefence"]["dig"] = _loc8_.readInt();
+         _loc7_["MagicAttack"]["magicHouse"] = 10 * _loc8_.readInt();
+         _loc7_["MagicDefence"]["magicHouse"] = 10 * _loc8_.readInt();
+         _loc7_["SecondPro"] = new DictionaryData();
+         _loc7_["SecondPro"]["Crit"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["Tenacity"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["SunderArmor"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["AvoidInjury"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["Kill"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["WillFight"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["ViolenceInjury"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["Speed"] = _loc8_.readInt();
+         _loc7_["SecondPro"]["Guard"] = _loc8_.readInt();
+         _loc7_["Attack"]["petseal"] = _loc8_.readInt();
+         _loc7_["Defence"]["petseal"] = _loc8_.readInt();
+         _loc7_["MagicAttack"]["petseal"] = _loc8_.readInt();
+         _loc7_["Agility"]["petseal"] = _loc8_.readInt();
+         _loc7_["Luck"]["petseal"] = _loc8_.readInt();
+         _loc7_["MagicDefence"]["petseal"] = _loc8_.readInt();
+         _loc7_["Damage"]["petseal"] = _loc8_.readInt();
+         _loc7_["Armor"]["petseal"] = _loc8_.readInt();
+         _loc7_["HP"]["petseal"] = _loc8_.readInt();
+         _loc11_.cardLevel = _loc8_.readInt();
+         _loc11_.cardMainStr = _loc8_.readUTF();
+         _loc11_.cardSuitStr = _loc8_.readUTF();
+         _loc11_.honorLevel = _loc8_.readInt();
+         _loc7_["HP"]["honor"] = _loc8_.readInt();
+         FineSuitManager.Instance.updateFineSuitProperty(_loc11_.fineSuitExp,_loc7_);
+         var _loc21_:Boolean = _loc11_.isSelf;
+         TotemManager.instance.updatePropertyAddtion(_loc11_.totemId,_loc7_,_loc21_ ? null : _loc11_.totemGrades);
+         _loc7_["HP"]["necklaceCast"] = _loc8_.readInt();
+         _loc11_.elementHuoAtk = _loc8_.readInt();
+         _loc11_.elementFengAtk = _loc8_.readInt();
+         _loc11_.elementTuAtk = _loc8_.readInt();
+         _loc11_.elementShuiAtk = _loc8_.readInt();
+         _loc11_.elementGuangAtk = _loc8_.readInt();
+         _loc11_.elementAnAtk = _loc8_.readInt();
+         _loc11_.elementHuoDef = _loc8_.readInt();
+         _loc11_.elementFengDef = _loc8_.readInt();
+         _loc11_.elementTuDef = _loc8_.readInt();
+         _loc11_.elementShuiDef = _loc8_.readInt();
+         _loc11_.elementGuangDef = _loc8_.readInt();
+         _loc11_.elementAnDef = _loc8_.readInt();
+         var _loc13_:Array = [];
+         _loc12_ = 0;
+         while(_loc12_ < 2)
+         {
+            _loc20_ = {};
+            _loc20_.skillId = _loc8_.readInt();
+            if(_loc20_.skillId > 0)
+            {
+               _loc20_.value = _loc8_.readInt();
+               _loc20_.rate = _loc8_.readInt();
+            }
+            _loc13_.push(_loc20_);
+            _loc12_++;
+         }
+         _loc11_.emblemSkillArr = _loc13_;
+         var _loc9_:int = _loc8_.readInt();
+         _loc12_ = 0;
+         while(_loc12_ < _loc9_)
+         {
+            _loc23_ = _loc8_.readInt();
+            _loc11_.cultureMachiningDic[_loc23_] = _loc8_.readInt();
+            _loc11_.cultureQuenchingDic[_loc23_] = _loc8_.readInt();
+            _loc11_.cultureQuenchingSkillDic[_loc23_] = _loc8_.readUTF();
+            _loc12_++;
+         }
+         _loc11_.cultureAddDamage = _loc8_.readInt();
+         _loc11_.propertyAddition = _loc7_;
+         _loc11_.lingStoneStr = _loc8_.readUTF();
+         _loc11_.plotDamage = _loc8_.readInt();
+         _loc11_.plotDefence = _loc8_.readInt();
+         _loc9_ = _loc8_.readInt();
+         _loc12_ = 0;
+         while(_loc12_ < _loc9_)
+         {
+            _loc4_ = new SoulMarkInfo();
+            _loc4_.ID = _loc8_.readInt();
+            _loc4_.tempID = _loc8_.readInt();
+            _loc4_.equipPos = _loc8_.readInt();
+            _loc4_.proStr = _loc8_.readUTF();
+            _loc17_ = _loc8_.readUTF();
+            _loc6_ = _loc8_.readUTF();
+            _loc4_.soulProStr = _loc17_;
+            _loc4_.soulSkillStr = _loc6_;
+            if(_loc4_.equipPos >= 0)
+            {
+               _loc11_.soulMarkDic[_loc4_.equipPos] = _loc4_;
+            }
+            _loc12_++;
+         }
+         _loc11_.soulMarkMainSkillID = _loc8_.readInt();
+         _loc11_.soulMarkSubSkillID = _loc8_.readInt();
+         _loc11_.soulMarkMainSkillType = _loc8_.readInt();
+         var _loc18_:int = _loc8_.readInt();
+         var _loc22_:int = _loc8_.readInt();
+         _loc11_.soulMainSkillID_PVP = _loc18_;
+         _loc11_.soulSubSkillID_PVP = _loc22_;
+         dispatchEvent(new Event("updatePlayerState"));
+         var _loc14_:String = _loc8_.readUTF();
+         var _loc24_:String = _loc8_.readUTF();
+         _loc11_.horseCoreProStr = _loc14_;
+         _loc11_.horseCoreExSkill = _loc24_;
+         _loc7_["Attack"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["Defence"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["Agility"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["Luck"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["MagicAttack"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["MagicDefence"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["Damage"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["Armor"]["forcesRelic"] = _loc8_.readInt();
+         _loc7_["HP"]["forcesRelic"] = _loc8_.readInt();
+         var _loc2_:int = _loc8_.readInt();
+         var _loc3_:int = _loc8_.readInt();
+         _loc11_.realAttack = _loc8_.readInt();
+         _loc11_.realDefence = _loc8_.readInt();
+         _loc11_.highSpeed = _loc8_.readInt();
+         _loc11_.propertyAddition = _loc7_;
+         HorseCoreManager.instance.dealHorseCoreAddPro(_loc11_);
+         _loc7_["realDamage"]["horseCore"] = int(_loc7_["realDamage"]["horseCore"]) + _loc2_;
+         _loc7_["realDefence"]["horseCore"] = int(_loc7_["realDefence"]["horseCore"]) + _loc3_;
+         _loc11_.commitChanges();
+      }
+      
+      public function get propertyAdditions

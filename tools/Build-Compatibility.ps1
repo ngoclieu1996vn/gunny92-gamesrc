@@ -10,8 +10,8 @@ $output = Join-Path $GameRoot 'bin/compatibility'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 if (-not $ServerAssembly) { $ServerAssembly = Join-Path $GameRoot 'Server/road/Game.Server.dll' }
 $baseDll = Join-Path $GameRoot 'Server/road/game.base.dll'
-$reader = Join-Path $GameRoot 'gameSrc/Game.Server/Game.Server.Packets/Client/LoginPacketReader.cs'
-$sourceRoot = Join-Path $GameRoot 'gameSrc'
+$sourceRoot = Split-Path $PSScriptRoot -Parent
+$reader = Join-Path $sourceRoot 'Game.Server/Game.Server.Packets/Client/LoginPacketReader.cs'
 function Compile([string[]]$CompilerArgs) {
     & $compiler /define:TRACE @CompilerArgs
     if ($LASTEXITCODE -ne 0) { throw 'Compatibility compilation failed.' }
@@ -82,7 +82,15 @@ if ($FightAssembly) {
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/PetFormsV92.cs'),
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/CaptchaV92.cs'),
-        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/MailAttachmentV92.cs'))
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/MailAttachmentV92.cs'),
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/MagicPowerV92.cs'),
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/PublicStatsV92.cs'),
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/PlayerPropertyResponseV92.cs'), '/reference:System.Configuration.dll')
+    foreach($test in @('MagicPowerTests','PublicStatsTests')){
+        Compile @('/nologo','/target:exe',"/out:$output/$test.exe","/reference:$baseDll",(Join-Path $sourceRoot "tests/$test.cs"))
+        & "$output/$test.exe" "$output/Game.Matchmaking.V92.dll"
+        if($LASTEXITCODE -ne 0){throw "$test failed."}
+    }
     Compile @('/nologo','/target:exe',"/out:$output/BattleResponseTests.exe","/reference:$baseDll",
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),(Join-Path $sourceRoot 'tests/BattleResponseTests.cs'))
     & "$output/BattleResponseTests.exe"
@@ -147,6 +155,13 @@ if ($FightAssembly) {
         (Join-Path $sourceRoot 'tests/MailAttachmentHookTests.cs'))
     & "$output/MailAttachmentHookTests.exe"
     if($LASTEXITCODE -ne 0){throw 'Mail attachment runtime hook test failed.'}
+    Compile @('/nologo','/target:exe',"/out:$output/StatsHookTests.exe","/reference:$baseDll","/reference:$output/Game.Server.dll",
+        "/reference:$output/Game.Matchmaking.V92.dll","/reference:$GameRoot/Server/road/Game.Logic.dll","/reference:$GameRoot/Request/bin/SqlDataProvider.dll","/reference:$CecilDll",
+        (Join-Path $sourceRoot 'tests/StatsHookTests.cs'))
+    '<configuration><appSettings><add key="MagicPowerV92.Enabled" value="true"/><add key="MagicPowerV92.PlayerIDs" value="228"/></appSettings></configuration>' | Set-Content -LiteralPath "$output/StatsHookTests.exe.config" -Encoding UTF8
+    & "$output/StatsHookTests.exe" "$output/Game.Server.dll"
+    if($LASTEXITCODE -ne 0){throw 'Stats runtime hook test failed.'}
+    & (Join-Path $PSScriptRoot 'Test-PlayerPropertyResponse.ps1') -GameRoot $GameRoot
     Compile @('/nologo','/target:exe',"/out:$output/CaptchaTests.exe","/reference:$output/Game.Server.dll","/reference:$baseDll",
         "/reference:$GameRoot/Server/road/Game.Logic.dll","/reference:$GameRoot/Request/bin/SqlDataProvider.dll",(Join-Path $sourceRoot 'tests/CaptchaTests.cs'))
     & "$output/CaptchaTests.exe"

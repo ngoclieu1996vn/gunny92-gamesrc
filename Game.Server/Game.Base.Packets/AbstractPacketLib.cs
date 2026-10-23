@@ -1087,6 +1087,7 @@ namespace Game.Base.Packets
 			packet.WriteInt(0);
 			packet.WriteInt(info.evolutionGrade);
 			packet.WriteInt(info.evolutionExp);
+			packet = Game.Server.Packets.PublicStatsV92.UpgradePublic(packet, info);
 			SendTCP(packet);
 			return packet;
 		}
@@ -2558,33 +2559,7 @@ namespace Game.Base.Packets
 
 		public GSPacketIn SendUpdatePlayerProperty(PlayerInfo info, PlayerProperty PlayerProp)
         {
-			string[] array = new string[] { "Attack", "Defence", "Agility", "Luck" };
-			GSPacketIn pkg = new GSPacketIn(164, info.ID);
-			pkg.WriteInt(info.ID);
-			string[] array2 = array;
-			for (int i = 0; i < array2.Length; i++)
-            {
-				string key = array2[i];
-				pkg.WriteInt(0);
-				pkg.WriteInt(0);//pkg.WriteInt(PlayerProp.Current["Texp"][key]);
-				pkg.WriteInt(0);//pkg.WriteInt(PlayerProp.Current["Card"][key]);
-				pkg.WriteInt(0);//pkg.WriteInt(PlayerProp.Current["Pet"][key]);
-				pkg.WriteInt(0);//pkg.WriteInt(PlayerProp.Current["Suit"][key]);
-				pkg.WriteInt(PlayerProp.Current["Avatar"][key]);
-			}
-			pkg.WriteInt(0);
-			pkg.WriteInt(0);
-			pkg.WriteInt(0);
-			pkg.WriteInt(0);
-			pkg.WriteInt(PlayerProp.Current["Avatar"]["HP"]);
-			pkg.WriteInt(0);
-			pkg.WriteInt(0);
-			pkg.WriteInt(0);
-			pkg.WriteInt(0);
-			pkg.WriteInt(PlayerProp.Current["Damage"]["Avatar"]); //_loc_4["Damage"]["Avatar"] = _loc_2.readInt();
-			pkg.WriteInt(PlayerProp.Current["Armor"]["Avatar"]); //_loc_4["Armor"]["Avatar"] = _loc_2.readInt();
-			pkg.WriteInt(PlayerProp.totalDamage);
-			pkg.WriteInt(PlayerProp.totalArmor);
+			GSPacketIn pkg = Game.Server.Packets.PlayerPropertyResponseV92.Create(info, PlayerProp);
 			this.SendTCP(pkg);
 			return pkg;
 		}
