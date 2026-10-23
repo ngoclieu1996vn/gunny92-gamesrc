@@ -967,38 +967,7 @@ namespace Game.Base.Packets
 
 		public void SendCheckCode()
 		{
-			if (m_gameClient.Player != null && m_gameClient.Player.PlayerCharacter.Grade >= 5 && (m_gameClient.Player.PlayerCharacter.CheckCount >= 10 || m_gameClient.Player.PlayerCharacter.ChatCount >= 999999 || m_gameClient.Player.FirstLoginCheckCode || m_gameClient.Player.PlayerCharacter.CheckTimer >= 15))
-			{
-				
-				m_gameClient.Player.FirstLoginCheckCode = false;
-				m_gameClient.Player.PlayerCharacter.CheckTimer = 0;
-				if (m_gameClient.Player.PlayerCharacter.CheckError == 0 && m_gameClient.Player.PlayerCharacter.ChatCount == 0)
-				{
-					m_gameClient.Player.PlayerCharacter.CheckCount += 10000;
-				}
-				GSPacketIn pkg = new GSPacketIn((byte)ePackageType.CHECK_CODE, m_gameClient.Player.PlayerCharacter.ID, 10240);
-				if (m_gameClient.Player.PlayerCharacter.CheckError < 1)
-				{
-					pkg.WriteByte(1);
-				}
-				else
-				{
-					pkg.WriteByte(2);
-				}
-				pkg.WriteBoolean(true);
-				pkg.WriteByte(2);
-				if (m_gameClient.Player.PlayerCharacter.ChatCount == 5)
-				{
-					pkg.WriteString(LanguageMgr.GetTranslation("CheckCode.Chat"));
-				}
-				else
-				{
-					pkg.WriteString(LanguageMgr.GetTranslation("CheckCode.Fight"));
-				}
-				m_gameClient.Player.PlayerCharacter.CheckCode = CheckCode.GenerateCheckCode();
-				pkg.Write(CheckCode.CreateImage(m_gameClient.Player.PlayerCharacter.CheckCode));
-				SendTCP(pkg);
-			}
+			// In-game CAPTCHA disabled at the server owner's request.
 		}
 
 		public void SendKitoff(string msg)
@@ -1716,7 +1685,7 @@ namespace Game.Base.Packets
 				packet.WriteDateTime(itemAt.latentEnergyEndTime);
 				//Need UnComment
 			}
-			SendTCP(packet);
+			SendTCP(Game.Server.Packets.InventoryResponseV92.Upgrade(packet));
 		}
 
 		public void SendUpdateCardData(CardInventory bag, int[] updatedSlots)

@@ -34,6 +34,52 @@ and pet/skill data and supplies inactive defaults for newer optional fields.
 Both the direct response and the packet returned for broadcasts use the adapted
 payload. Regression tests cover married/unmarried players with and without pets.
 
+`MatchmakingV92` handles the current client's rival selector (94/36). The host's
+choice is held per live session; selecting Bot starts the existing RingStation
+bot pipeline immediately for solo match rooms, irrespective of character level.
+Party bot matches are rejected with a message instead of waiting indefinitely.
+Other room types and guild/cross-zone matching retain their original paths.
+
+Cancellation is queued on Road's room thread and checked again on Fight's room
+thread. Idle/repeated cancellation keeps the player in the room; combat that
+already started is retained. Empty/active room cleanup follows its original path.
+Room creation carries a lifetime generation in packet 64's Parameter2. Packet 65
+requests carry room ID in Parameter1 and generation in Parameter2; ClientID 1
+identifies ordinary cleanup. All removal acknowledgements echo the generation in
+Parameter1, preventing a delayed response from clearing a newer match attempt.
+
+These hooks use `Game.Matchmaking.V92.dll` beside Road and
+`Fight.Matchmaking.V92.dll` beside Fight. Deploy the four generated files:
+`Game.Server.dll`, `Game.Matchmaking.V92.dll`, `Fighting.Server.dll`, and
+`Fight.Matchmaking.V92.dll`. Stop Road and Fight normally, back up the previous
+files, install the paired build, start Fight and wait for 9308, then start Road
+and wait for 9200. Do not update only one side of the generation protocol.
+The build extracts the original Fighting assembly from the unchanged Costura
+resource in `Fighting.Service.exe`; `-FightAssembly` can supply an original backup.
+
+`InventoryResponseV92` adapts every occupied slot in inventory packet 64 to
+the current `PlayerManager.__updateInventorySlot` schema. It retains equipment,
+expiry, gold and latent fields and inserts inactive magic/enchantment fields;
+bag 52 omits the breakthrough fields as required by the client. Empty slots
+remain empty. Without the extension the client reads the next slot as magic
+data, so equipped weapons and bag contents fail to appear.
+
+`BattleResponseV92` adapts game-create packet 91/101 on the Fight-to-Road room
+relay only. It moves place after the six reserved fields, retains weapons,
+spouses and pet skills, adds the display power and inactive optional fields,
+and terminates the packet with the current battle settings. The AI connection
+continues to receive its legacy schema. Both adapters reject malformed legacy
+payloads before sending partial data, and preserve the input packet and header.
+PvP game-start packet 91/99 is adapted on the same relay for Match and Elite
+rooms only: positions, blood, teams, power ratio and buff/property data remain
+unchanged, with inactive deputy/wish/possession/exit/spirit fields and map trailers
+inserted in the current client order. Other room types retain their start schema.
+
+At the server owner's request, in-game CAPTCHA is disabled: `SendCheckCode`
+does not emit challenges, and `CaptchaV92` dismisses stale packet-200 submissions
+without parsing answers, kicking players or granting rewards. CAPTCHA state is
+cleared on dismissal. Account authentication and RSA login framing are unchanged.
+
 `QuestListV92` regenerates the quest cache from the existing database. It adds
 the `Rate` metadata from `SP_Server_Config`, `RewardBindMoney`, and the five
 client reward-count fields. Counts remain equal to the fixed amount granted

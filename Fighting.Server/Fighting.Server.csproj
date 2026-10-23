@@ -61,6 +61,7 @@
     <Compile Include="Fighting.Server.Rooms\ProxyRoom.cs" />
     <Compile Include="Fighting.Server.Rooms\ProxyRoomMgr.cs" />
     <Compile Include="Fighting.Server.Rooms\RemoveRoomAction.cs" />
+    <Compile Include="Fighting.Server.Rooms\MatchCancellationV92.cs" />
     <Compile Include="Fighting.Server.Servers\ServerMgr.cs" />
     <Compile Include="Fighting.Server\FightServer.cs" />
     <Compile Include="Fighting.Server\FightServerConfig.cs" />

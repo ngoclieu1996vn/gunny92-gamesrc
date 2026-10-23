@@ -17,6 +17,7 @@ namespace Game.Server.Rooms
 
         public void Execute()
         {
+            if (!object.ReferenceEquals(m_room.BattleServer, m_server)) return;
             if (m_room.Game == null && m_server != null)
             {
                 m_room.BattleServer = null;

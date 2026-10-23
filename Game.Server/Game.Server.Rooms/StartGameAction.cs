@@ -25,7 +25,7 @@ namespace Game.Server.Rooms
 
         public void Execute()
         {
-            if (m_room.CanStart())
+            if (MatchmakingV92.CanStart(m_room))
             {
                 m_room.StartWithNpc = false;
                 m_room.PickUpNpcId = -1;
@@ -93,7 +93,7 @@ namespace Game.Server.Rooms
                         if (m_room.Host.PlayerCharacter.Grade <= 3)
                         {
                             m_room.StartWithNpc = true;
-                            m_room.PickUpNpcId = RingStationMgr.GetAutoBot(m_room.Host, (int)m_room.RoomType, (int)m_room.GameType);
+                            m_room.PickUpNpcId = MatchmakingV92.ReserveNpc(m_room.Host, (int)m_room.RoomType, (int)m_room.GameType);
 
                         }
                         else
@@ -137,6 +137,7 @@ namespace Game.Server.Rooms
                         }
                     }
 
+                    MatchmakingV92.PrepareMatch(m_room);
                     BattleServer server = BattleMgr.AddRoom(m_room);
                     if (server != null)
                     {

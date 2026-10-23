@@ -443,7 +443,7 @@ namespace Game.Server.Battle
 
 		protected void HandleRoomRemove(GSPacketIn packet)
 		{
-			m_server.RemoveRoomImp(packet.ClientID);
+			Game.Server.Packets.MatchmakingV92.OnRoomRemoved(m_server, packet);
 		}
 
 		protected void HandleStartGame(GSPacketIn pkg)
@@ -455,7 +455,7 @@ namespace Game.Server.Battle
 		protected void HandleSendToRoom(GSPacketIn pkg)
 		{
 			int roomId = pkg.ClientID;
-			GSPacketIn inner = pkg.ReadPacket();
+			GSPacketIn inner = Game.Server.Packets.MatchmakingV92.UpgradeRoomResponse(pkg.ReadPacket(), m_server, roomId);
 			m_server.SendToRoom(roomId, inner, pkg.Parameter1, pkg.Parameter2);
 		}
 
@@ -850,15 +850,13 @@ namespace Game.Server.Battle
                     pkg.WriteInt(id);
                 }
             }
+			pkg = Game.Server.Packets.MatchmakingV92.TagRoomRequest(pkg, room);
 			SendTCP(pkg);
 		}
 
 		public void SendRemoveRoom(BaseRoom room)
 		{
-			SendTCP(new GSPacketIn(65)
-			{
-				Parameter1 = room.RoomId
-			});
+			Game.Server.Packets.MatchmakingV92.SendRemoveRoom(this, room);
 		}
 
 		public void SendToGame(int gameId, GSPacketIn pkg)

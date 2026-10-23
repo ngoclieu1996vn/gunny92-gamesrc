@@ -21,6 +21,7 @@ namespace Game.Server.GameRoom
 
         public override void OnGameData(GamePlayer player, GSPacketIn packet)
         {
+            if (MatchmakingV92.TryHandle(player, packet)) return;
             eRoomPackageType type = (eRoomPackageType)packet.ReadInt(); //packet.ReadByte();
             try
             {

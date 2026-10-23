@@ -368,6 +368,7 @@ namespace Fighting.Server
 				num8 += character.Grade;
 			}
 			ProxyRoom room = new ProxyRoom(ProxyRoomMgr.NextRoomId(), num1, zoneID, players, this, npcId, pickUpWithNPC, isBot, isSmartBot: false);
+			MatchCancellationV92.TagRoom(room, pkg.Parameter2);
 			room.GuildId = num7;
 			room.selfId = num9;
 			room.AvgLevel = num8;
@@ -398,18 +399,7 @@ namespace Fighting.Server
 
 		public void HandleGameRoomCancel(GSPacketIn pkg)
 		{
-			ProxyRoom room = null;
-			lock (m_rooms)
-			{
-				if (m_rooms.ContainsKey(pkg.Parameter1))
-				{
-					room = m_rooms[pkg.Parameter1];
-				}
-			}
-			if (room != null)
-			{
-				ProxyRoomMgr.RemoveRoom(room);
-			}
+			MatchCancellationV92.Cancel(this, pkg);
 		}
 
 		public void HanleSendToGame(GSPacketIn pkg)
@@ -736,18 +726,7 @@ namespace Fighting.Server
 
 		public void RemoveRoom(int orientId, ProxyRoom room)
 		{
-			bool flag = false;
-			lock (m_rooms)
-			{
-				if (m_rooms.ContainsKey(orientId) && m_rooms[orientId] == room)
-				{
-					flag = m_rooms.Remove(orientId);
-				}
-			}
-			if (flag)
-			{
-				SendRemoveRoom(orientId);
-			}
+			MatchCancellationV92.RemoveRoom(this, orientId, room);
 		}
 
 		public void SendPlayerLeageScoure(int playerId, bool isWin, int value)
