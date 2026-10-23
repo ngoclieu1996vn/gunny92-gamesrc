@@ -74,6 +74,11 @@ PvP game-start packet 91/99 is adapted on the same relay for Match and Elite
 rooms only: positions, blood, teams, power ratio and buff/property data remain
 unchanged, with inactive deputy/wish/possession/exit/spirit fields and map trailers
 inserted in the current client order. Other room types retain their start schema.
+Turn packet 91/6 uses the same PvP gate. A zero scene-effect count precedes the
+legacy wind bytes; normal wind-factor and inactive optional player fields are
+inserted before the final terrain flag. Without this framing, the client reads
+wind as a huge scene-effect count and can stall during its first turn. The actual
+wind, positions, blood, energy, pet MP, shoot/fly counts and turn index are retained.
 
 At the server owner's request, in-game CAPTCHA is disabled: `SendCheckCode`
 does not emit challenges, and `CaptchaV92` dismisses stale packet-200 submissions

@@ -26,11 +26,17 @@ class MatchmakingTests
         foreach(var field in typeof(BattleServer).GetFields(BindingFlags.NonPublic|BindingFlags.Instance))
             if(field.FieldType==typeof(Dictionary<int,BaseRoom>))((Dictionary<int,BaseRoom>)field.GetValue(relayServer)).Add(77,room);
         var startPacket=new GSPacketIn(91);startPacket.WriteByte(99);startPacket.WriteInt(0);startPacket.WriteDateTime(new DateTime(2026,1,1));
+        var turnPacket=new GSPacketIn(91);turnPacket.WriteByte(6);turnPacket.WriteBoolean(false);turnPacket.WriteByte(0);turnPacket.WriteByte(0);turnPacket.WriteByte(0);turnPacket.WriteBoolean(false);
+        foreach(int n in new[]{20,0,0,1})turnPacket.WriteInt(n);
         Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(startPacket,null,77),startPacket),"Unknown room must retain its start schema.");
+        Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(turnPacket,null,77),turnPacket),"Unknown room must retain its turn schema.");
         room.RoomType=eRoomType.Dungeon;
         Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(startPacket,relayServer,77),startPacket),"PvE start schema must not be adapted as PvP.");
+        Assert(Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(turnPacket,relayServer,77),turnPacket),"PvE turn schema must not be adapted as PvP.");
         foreach(var kind in new[]{eRoomType.Match,eRoomType.EliteGameScore,eRoomType.EliteGameChampion}){
             room.RoomType=kind;Assert(!Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(startPacket,relayServer,77),startPacket),"Known remote PvP room must receive current start schema.");}
+        foreach(var kind in new[]{eRoomType.Match,eRoomType.EliteGameScore,eRoomType.EliteGameChampion}){
+            room.RoomType=kind;Assert(!Object.ReferenceEquals(MatchmakingV92.UpgradeRoomResponse(turnPacket,relayServer,77),turnPacket),"Known remote PvP room must receive current turn schema.");}
         room.RoomType=eRoomType.Match;
         typeof(BaseRoom).GetField("m_host",BindingFlags.NonPublic|BindingFlags.Instance).SetValue(room,host);
         MatchmakingV92.SetBotPreference(host,true);

@@ -89,6 +89,10 @@ if ($FightAssembly) {
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),(Join-Path $sourceRoot 'tests/BattleStartTests.cs'))
     & "$output/BattleStartTests.exe"
     if($LASTEXITCODE -ne 0){throw 'Battle start regression tests failed.'}
+    Compile @('/nologo','/target:exe',"/out:$output/BattleTurnTests.exe","/reference:$baseDll",
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),(Join-Path $sourceRoot 'tests/BattleTurnTests.cs'))
+    & "$output/BattleTurnTests.exe"
+    if($LASTEXITCODE -ne 0){throw 'Battle turn regression tests failed.'}
     Compile @('/nologo','/target:exe',"/out:$output/InventoryResponseTests.exe","/reference:$baseDll",
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/InventoryResponseV92.cs'),(Join-Path $sourceRoot 'tests/InventoryResponseTests.cs'))
     & "$output/InventoryResponseTests.exe"

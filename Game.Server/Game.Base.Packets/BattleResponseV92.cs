@@ -6,6 +6,27 @@ namespace Game.Server.Packets
     // Applied only on Fight -> Road -> human client; AI's legacy reader is unchanged.
     public static class BattleResponseV92
     {
+        public static GSPacketIn UpgradeTurn(GSPacketIn p)
+        {
+            if(p.Code!=91 || p.Length<=20 || p.Buffer[20]!=6)return p;
+            int c=20;var q=new GSPacketIn(p.Code,p.ClientID,Math.Max(10240,p.Length));q.Parameter1=p.Parameter1;q.Parameter2=p.Parameter2;
+            Copy(p,q,ref c,"b");q.WriteInt(0); // no scene-effect records in the legacy game
+            Copy(p,q,ref c,"bbbb");q.WriteInt(0);q.WriteInt(100);q.WriteInt(0); // wind extension, normal factor
+            Copy(p,q,ref c,"bi");int boxes=Int(p,c);Copy(p,q,ref c,"i");
+            if(boxes<0 || boxes>4096)throw new InvalidDataException("Invalid turn box count.");
+            for(int i=0;i<boxes;i++)Copy(p,q,ref c,"iiii");
+            int players=Int(p,c);Copy(p,q,ref c,"i");
+            if(players<0 || players>64)throw new InvalidDataException("Invalid turn player count.");
+            for(int i=0;i<players;i++)
+            {
+                Copy(p,q,ref c,"i b i i i b i i i i i");
+                q.WriteInt(0);q.WriteInt(0); // pet flag, transformation energy inactive
+                Copy(p,q,ref c,"ii");q.WriteInt(0); // shoot/fly counts, optional pet turn counter
+            }
+            Copy(p,q,ref c,"i");q.WriteBoolean(false); // global turn, no scripted terrain replacement
+            if(c!=p.Length)throw new InvalidDataException("Unexpected legacy turn trailer.");
+            return q;
+        }
         public static GSPacketIn UpgradeStart(GSPacketIn p)
         {
             if(p.Code!=91 || p.Length<=20 || p.Buffer[20]!=99)return p;
