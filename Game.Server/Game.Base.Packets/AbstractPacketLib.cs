@@ -2559,6 +2559,7 @@ namespace Game.Base.Packets
 
 		public GSPacketIn SendUpdatePlayerProperty(PlayerInfo info, PlayerProperty PlayerProp)
         {
+			Game.Server.Packets.PlayerPropertyResponseV92.InitializeTotem(m_gameClient, info);
 			GSPacketIn pkg = Game.Server.Packets.PlayerPropertyResponseV92.Create(info, PlayerProp);
 			this.SendTCP(pkg);
 			return pkg;

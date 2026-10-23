@@ -241,5 +241,5 @@ protected function __updatePlayerProperty(event:PkgEvent) : void
          _loc7_["realDefence"]["horseCore"] = int(_loc7_["realDefence"]["horseCore"]) + _loc3_;
          _loc11_.commitChanges();
       }
-      
+
       public function get propertyAdditions

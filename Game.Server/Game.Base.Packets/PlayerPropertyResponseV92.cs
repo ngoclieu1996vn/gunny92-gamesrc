@@ -11,6 +11,14 @@ namespace Game.Server.Packets
     // strings and collection counts: omitting one shifts every later property.
     public static class PlayerPropertyResponseV92
     {
+        // Legacy backend has base Totem progression, but no page-grade upgrades.
+        // Initialize the separate upgrade dictionary before the property reader uses it.
+        public static void InitializeTotem(GameClient client, PlayerInfo info)
+        {
+            if(client==null || client.Player==null || client.Player.PlayerCharacter==null ||
+               info==null || client.Player.PlayerCharacter.ID!=info.ID)return;
+            var state=new GSPacketIn(619,info.ID);state.WriteInt(0);client.SendTCP(state);
+        }
         public static GSPacketIn Create(PlayerInfo info, PlayerProperty properties)
         {
             return Create(info, properties, properties != null && properties.Player != null

@@ -46,7 +46,9 @@ class PatchMatchmaking
             var propertyWriter=packetLib.Methods.Single(x=>x.Name=="SendUpdatePlayerProperty");
             var originalPropertySend=(MethodReference)propertyWriter.Body.Instructions.Single(x=>x.Operand is MethodReference&&((MethodReference)x.Operand).Name=="SendTCP").Operand;
             var createProperty=m.ImportReference(helper.MainModule.GetType("Game.Server.Packets.PlayerPropertyResponseV92").Methods.Single(x=>x.Name=="Create"&&x.Parameters.Count==2));
-            Body(propertyWriter,Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),Instruction.Create(OpCodes.Call,createProperty),
+            Body(propertyWriter,Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Ldfld,packetLib.Fields.Single(x=>x.Name=="m_gameClient")),Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.PlayerPropertyResponseV92","InitializeTotem")),
+                Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),Instruction.Create(OpCodes.Call,createProperty),
                 Instruction.Create(OpCodes.Stloc_0),Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Ldloc_0),Instruction.Create(OpCodes.Call,originalPropertySend),Instruction.Create(OpCodes.Ldloc_0),Instruction.Create(OpCodes.Ret));
             propertyWriter.Body.InitLocals=true;propertyWriter.Body.Variables.Add(new VariableDefinition(createProperty.ReturnType));
             var gamePlayer=m.GetType("Game.Server.GameObjects.GamePlayer");

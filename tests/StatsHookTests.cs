@@ -28,6 +28,12 @@ class StatsHookTests
   Set(player,"m_playerProp",properties);
   E(MagicPowerV92.Apply(player,1000,1000),11853,"enabled AIProbe nonzero magic fixture");
   E(MagicPowerV92.Apply(player,1000,1000),11853,"no cumulative addition across recomputes");
+  client.Player=player;info.totemId=10012;
+  PlayerPropertyResponseV92.InitializeTotem(client,info);
+  E((int)client.Captured.Code,619,"initialize page-grade state before self properties");client.Captured.Offset=20;
+  E(client.Captured.ReadInt(),0,"no unsupported page grades");E(client.Captured.DataLeft,0,"exact Totem state framing");E(info.totemId,10012,"base Totem progress retained");
+  var captured=client.Captured;PlayerPropertyResponseV92.InitializeTotem(client,new PlayerInfo{ID=227});
+  E(Object.ReferenceEquals(captured,client.Captured),true,"viewing another player must not reset self state");
   info.ID=227;E(MagicPowerV92.Apply(player,1000,1000),1000,"other live accounts unchanged");E(info.hp,76543,"HP not mutated");
   using(var assembly=AssemblyDefinition.ReadAssembly(args[0])){
    var update=assembly.MainModule.GetType("Game.Server.GameObjects.GamePlayer").Methods.Single(m=>m.Name=="UpdateFightPower");
@@ -35,7 +41,8 @@ class StatsHookTests
    E(calls.Count(m=>m.Name=="GetBaseAttack"),1,"base damage evaluated once");
    E(calls.Count(m=>m.DeclaringType.Name=="MagicPowerV92"&&m.Name=="Apply"),1,"power hook installed once");
    var property=assembly.MainModule.GetType("Game.Base.Packets.AbstractPacketLib").Methods.Single(m=>m.Name=="SendUpdatePlayerProperty");
-   E(property.Body.Instructions.Count(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).DeclaringType.Name=="PlayerPropertyResponseV92"),1,"property hook installed once");
+   E(property.Body.Instructions.Count(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).DeclaringType.Name=="PlayerPropertyResponseV92"&&((MethodReference)i.Operand).Name=="Create"),1,"property hook installed once");
+   E(property.Body.Instructions.Count(i=>i.Operand is MethodReference&&((MethodReference)i.Operand).Name=="InitializeTotem"),1,"Totem initialization hook installed once");
   }
   Console.WriteLine("PASS: actual patched public writer keeps HP/MA/MR separate for send+broadcast; AIProbe-only power uses real sources once, without HP mutations.");return 0;
  }catch(Exception e){Console.Error.WriteLine(e);return 1;}}
