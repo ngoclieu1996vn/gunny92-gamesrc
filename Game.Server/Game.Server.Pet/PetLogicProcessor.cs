@@ -22,6 +22,7 @@ namespace Game.Server.Pet
 
 		public override void OnGameData(GamePlayer player, GSPacketIn packet)
 		{
+			if (Game.Server.Packets.PetFormsV92.TryHandle(player, packet)) return;
 			PetPackageType petPackageType = (PetPackageType)packet.ReadByte();
 			//Console.WriteLine("petPackageType = {0}", petPackageType);
 			try

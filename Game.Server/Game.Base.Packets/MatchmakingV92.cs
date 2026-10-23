@@ -13,10 +13,11 @@ namespace Game.Server.Packets
     {
         public static GSPacketIn UpgradeRoomResponse(GSPacketIn packet,BattleServer server,int roomId)
         {
-            if(packet.Code==91 && packet.Length>20 && (packet.Buffer[20]==99 || packet.Buffer[20]==6))
+            if(packet.Code==91 && packet.Length>20 && (packet.Buffer[20]==99 || packet.Buffer[20]==6 || packet.Buffer[20]==2))
             {
                 BaseRoom room=server==null?null:server.FindRoom(roomId);
                 if(room==null || (room.RoomType!=eRoomType.Match && room.RoomType!=eRoomType.EliteGameScore && room.RoomType!=eRoomType.EliteGameChampion))return packet;
+                if(packet.Buffer[20]==2)return BattleResponseV92.UpgradeShoot(packet);
                 return packet.Buffer[20]==99?BattleResponseV92.UpgradeStart(packet):BattleResponseV92.UpgradeTurn(packet);
             }
             return BattleResponseV92.UpgradeCreate(packet);

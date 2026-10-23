@@ -6,6 +6,33 @@ namespace Game.Server.Packets
     // Applied only on Fight -> Road -> human client; AI's legacy reader is unchanged.
     public static class BattleResponseV92
     {
+        public static GSPacketIn UpgradeShoot(GSPacketIn p)
+        {
+            if(p.Code!=91 || p.Length<=20 || p.Buffer[20]!=2)return p;
+            int c=20;var q=new GSPacketIn(p.Code,p.ClientID,Math.Max(10240,p.Length));q.Parameter1=p.Parameter1;q.Parameter2=p.Parameter2;
+            Copy(p,q,ref c,"bibbbb");q.WriteInt(0);q.WriteInt(100); // wind extension and normal factor
+            int bombs=Int(p,c);Copy(p,q,ref c,"i");
+            if(bombs<1 || bombs>1024)throw new InvalidDataException("Invalid shot bomb count.");
+            for(int i=0;i<bombs;i++)
+            {
+                Copy(p,q,ref c,"iibi");q.WriteInt(-1); // legacy bombs are roots, never children of another projectile
+                Copy(p,q,ref c,"iiiiisii");q.WriteInt(0); // trajectory/template/particle/damage; optional action context
+                int actions=Int(p,c);Copy(p,q,ref c,"i");
+                if(actions<0 || actions>65536)throw new InvalidDataException("Invalid bomb action count.");
+                for(int j=0;j<actions;j++)
+                {
+                    int type=Int(p,c+4);Copy(p,q,ref c,"iiii");
+                    if(type==27){Need(p,c,8);c+=8;} // this client reads only two parameters for action 27
+                    else Copy(p,q,ref c,"ii");
+                }
+            }
+            int pets=Int(p,c);Copy(p,q,ref c,"i");
+            if(pets<0 || pets>4096)throw new InvalidDataException("Invalid shot pet action count.");
+            for(int i=0;i<pets;i++)Copy(p,q,ref c,"iiii");
+            Copy(p,q,ref c,"i");
+            if(c!=p.Length)throw new InvalidDataException("Unexpected legacy shot trailer.");
+            return q;
+        }
         public static GSPacketIn UpgradeTurn(GSPacketIn p)
         {
             if(p.Code!=91 || p.Length<=20 || p.Buffer[20]!=6)return p;

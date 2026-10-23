@@ -80,6 +80,21 @@ inserted before the final terrain flag. Without this framing, the client reads
 wind as a huge scene-effect count and can stall during its first turn. The actual
 wind, positions, blood, energy, pet MP, shoot/fly counts and turn index are retained.
 
+Shot packet 91/2 uses that same PvP relay gate. It adds the wind extension and
+normal rate, a parent projectile ID of -1 (legacy shots are root projectiles),
+and the optional action context. Action 27 carries only its first two parameters
+in this client; other actions retain all four. Trajectory, template, particle,
+damage factors and pet attack records remain unchanged. The AI still consumes
+the original payload. Regression tests parse single/triple shots, both wind
+signs, mixed action types and pet attacks to the exact packet end.
+
+`PetFormsV92` handles the current bag's prerequisite query 68/24 before the
+legacy pet dispatcher reads its command. It replies with zero permanent and
+timed advanced forms, which this backend does not implement. Unrelated pet
+commands retain their original cursor and handler; malformed forms queries
+produce no reply. Tests also invoke the patched `PetLogicProcessor` to verify
+the deployed hook, without awarding equipment, pets or changing player state.
+
 At the server owner's request, in-game CAPTCHA is disabled: `SendCheckCode`
 does not emit challenges, and `CaptchaV92` dismisses stale packet-200 submissions
 without parsing answers, kicking players or granting rewards. CAPTCHA state is

@@ -36,6 +36,10 @@ class PatchMatchmaking
             var inventorySend=inventory.Body.Instructions.Single(x=>x.Operand is MethodReference && ((MethodReference)x.Operand).Name=="SendTCP");
             inventory.Body.GetILProcessor().InsertBefore(inventorySend,Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.InventoryResponseV92","Upgrade")));
             ExpandBranches(inventory);
+            var petProcessor=m.GetType("Game.Server.Pet.PetLogicProcessor").Methods.Single(x=>x.Name=="OnGameData");
+            var petBeginning=petProcessor.Body.Instructions[0];
+            foreach(var i in new[]{Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.PetFormsV92","TryHandle")),Instruction.Create(OpCodes.Brfalse,petBeginning),Instruction.Create(OpCodes.Ret)})petProcessor.Body.GetILProcessor().InsertBefore(petBeginning,i);
+            ExpandBranches(petProcessor);
             var processor=m.GetType("Game.Server.GameRoom.GameRoomLogicProcessor").Methods.Single(x=>x.Name=="OnGameData");
             var beginning=processor.Body.Instructions[0]; var il=processor.Body.GetILProcessor();
             foreach(var i in new[]{Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),Instruction.Create(OpCodes.Call,Import(m,helper,h,"TryHandle")),Instruction.Create(OpCodes.Brfalse,beginning),Instruction.Create(OpCodes.Ret)})il.InsertBefore(beginning,i);

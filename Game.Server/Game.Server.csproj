@@ -169,6 +169,7 @@
     <Compile Include="Game.Base.Packets\MatchmakingV92.cs" />
     <Compile Include="Game.Base.Packets\InventoryResponseV92.cs" />
     <Compile Include="Game.Base.Packets\BattleResponseV92.cs" />
+    <Compile Include="Game.Base.Packets\PetFormsV92.cs" />
     <Compile Include="Game.Base.Packets\CaptchaV92.cs" />
     <Compile Include="Game.Base.Packets\RoomResponseV92.cs" />
     <Compile Include="Game.Base.Packets\IPacketLib.cs" />
