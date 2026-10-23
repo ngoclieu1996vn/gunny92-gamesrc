@@ -36,6 +36,23 @@ class PatchMatchmaking
             var inventorySend=inventory.Body.Instructions.Single(x=>x.Operand is MethodReference && ((MethodReference)x.Operand).Name=="SendTCP");
             inventory.Body.GetILProcessor().InsertBefore(inventorySend,Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.InventoryResponseV92","Upgrade")));
             ExpandBranches(inventory);
+            var mailType=m.GetType("Game.Server.Packets.Client.MailGetAttachHandler");
+            var mailHandler=mailType.Methods.Single(x=>x.Name=="HandlePacket");
+            var mailLegacy=new MethodDefinition("HandleLegacyPacketV92",MethodAttributes.Private|MethodAttributes.HideBySig,mailHandler.ReturnType);
+            foreach(var parameter in mailHandler.Parameters)mailLegacy.Parameters.Add(new ParameterDefinition(parameter.Name,parameter.Attributes,parameter.ParameterType));
+            var oldMailBody=mailHandler.Body;mailLegacy.Body=new MethodBody(mailLegacy){InitLocals=oldMailBody.InitLocals,MaxStackSize=oldMailBody.MaxStackSize};
+            foreach(var variable in oldMailBody.Variables)mailLegacy.Body.Variables.Add(variable);
+            foreach(var instruction in oldMailBody.Instructions){if(instruction.Operand is ParameterDefinition)instruction.Operand=mailLegacy.Parameters[((ParameterDefinition)instruction.Operand).Index];mailLegacy.Body.Instructions.Add(instruction);}
+            foreach(var region in oldMailBody.ExceptionHandlers)mailLegacy.Body.ExceptionHandlers.Add(region);
+            mailType.Methods.Add(mailLegacy);
+            var mailSend=mailLegacy.Body.Instructions.Single(x=>x.Operand is MethodReference && ((MethodReference)x.Operand).Name=="SendTCP");
+            mailLegacy.Body.GetILProcessor().InsertBefore(mailSend,Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.MailAttachmentV92","UpgradeResponse")));
+            ExpandBranches(mailLegacy);
+            var mailDispatch=Import(m,helper,"Game.Server.Packets.MailAttachmentV92","Dispatch");
+            var delegateCtor=new MethodReference(".ctor",m.TypeSystem.Void,mailDispatch.Parameters[2].ParameterType){HasThis=true};
+            delegateCtor.Parameters.Add(new ParameterDefinition(m.TypeSystem.Object));delegateCtor.Parameters.Add(new ParameterDefinition(m.TypeSystem.IntPtr));
+            Body(mailHandler,Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),Instruction.Create(OpCodes.Ldarg_0),
+                Instruction.Create(OpCodes.Ldftn,mailLegacy),Instruction.Create(OpCodes.Newobj,delegateCtor),Instruction.Create(OpCodes.Call,mailDispatch),Instruction.Create(OpCodes.Ret));
             var petProcessor=m.GetType("Game.Server.Pet.PetLogicProcessor").Methods.Single(x=>x.Name=="OnGameData");
             var petBeginning=petProcessor.Body.Instructions[0];
             foreach(var i in new[]{Instruction.Create(OpCodes.Ldarg_1),Instruction.Create(OpCodes.Ldarg_2),Instruction.Create(OpCodes.Call,Import(m,helper,"Game.Server.Packets.PetFormsV92","TryHandle")),Instruction.Create(OpCodes.Brfalse,petBeginning),Instruction.Create(OpCodes.Ret)})petProcessor.Body.GetILProcessor().InsertBefore(petBeginning,i);

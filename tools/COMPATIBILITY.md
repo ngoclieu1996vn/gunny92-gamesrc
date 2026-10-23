@@ -112,6 +112,17 @@ commands retain their original cursor and handler; malformed forms queries
 produce no reply. Tests also invoke the patched `PetLogicProcessor` to verify
 the deployed hook, without awarding equipment, pets or changing player state.
 
+Mail attachment packet 113 is adapted by `MailAttachmentV92`. The current
+client writes a selection byte, an integer mail count and that many mail IDs;
+the legacy handler expects one integer mail ID followed by the selection byte.
+The decoder validates the complete request (including bounds and duplicate IDs)
+before dispatching each mail to the original handler with the authenticated
+player ID. Original ownership, bag password, inventory and reward checks remain
+in that handler. Replies prepend the result count expected by `MailManager`,
+preserving the actual claimed attachment slots and mail ID. Protocol tests cover
+malformed requests and exact client framing; hook tests invoke the patched
+assembly with a locked bag to check dispatch without granting items or using SQL.
+
 At the server owner's request, in-game CAPTCHA is disabled: `SendCheckCode`
 does not emit challenges, and `CaptchaV92` dismisses stale packet-200 submissions
 without parsing answers, kicking players or granting rewards. CAPTCHA state is

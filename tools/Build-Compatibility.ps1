@@ -81,7 +81,8 @@ if ($FightAssembly) {
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/InventoryResponseV92.cs'),
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/PetFormsV92.cs'),
-        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/CaptchaV92.cs'))
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/CaptchaV92.cs'),
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/MailAttachmentV92.cs'))
     Compile @('/nologo','/target:exe',"/out:$output/BattleResponseTests.exe","/reference:$baseDll",
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/BattleResponseV92.cs'),(Join-Path $sourceRoot 'tests/BattleResponseTests.cs'))
     & "$output/BattleResponseTests.exe"
@@ -111,6 +112,11 @@ if ($FightAssembly) {
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/PetFormsV92.cs'),(Join-Path $sourceRoot 'tests/PetFormsTests.cs'))
     & "$output/PetFormsTests.exe"
     if($LASTEXITCODE -ne 0){throw 'Pet forms regression tests failed.'}
+    Compile @('/nologo','/target:exe',"/out:$output/MailAttachmentTests.exe","/reference:$baseDll","/reference:$ServerAssembly",
+        "/reference:$GameRoot/Server/road/Game.Logic.dll","/reference:$GameRoot/Request/bin/SqlDataProvider.dll",
+        (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/MailAttachmentV92.cs'),(Join-Path $sourceRoot 'tests/MailAttachmentTests.cs'))
+    & "$output/MailAttachmentTests.exe"
+    if($LASTEXITCODE -ne 0){throw 'Mail attachment regression tests failed.'}
     Compile @('/nologo','/target:exe',"/out:$output/InventoryResponseTests.exe","/reference:$baseDll",
         (Join-Path $sourceRoot 'Game.Server/Game.Base.Packets/InventoryResponseV92.cs'),(Join-Path $sourceRoot 'tests/InventoryResponseTests.cs'))
     & "$output/InventoryResponseTests.exe"
@@ -136,6 +142,11 @@ if ($FightAssembly) {
         (Join-Path $sourceRoot 'tests/PetFormsTests.cs'))
     & "$output/PetFormsHookTests.exe"
     if($LASTEXITCODE -ne 0){throw 'Pet forms runtime hook test failed.'}
+    Compile @('/nologo','/target:exe',"/out:$output/MailAttachmentHookTests.exe","/reference:$baseDll","/reference:$output/Game.Server.dll",
+        "/reference:$GameRoot/Server/road/Game.Logic.dll","/reference:$GameRoot/Request/bin/SqlDataProvider.dll",
+        (Join-Path $sourceRoot 'tests/MailAttachmentHookTests.cs'))
+    & "$output/MailAttachmentHookTests.exe"
+    if($LASTEXITCODE -ne 0){throw 'Mail attachment runtime hook test failed.'}
     Compile @('/nologo','/target:exe',"/out:$output/CaptchaTests.exe","/reference:$output/Game.Server.dll","/reference:$baseDll",
         "/reference:$GameRoot/Server/road/Game.Logic.dll","/reference:$GameRoot/Request/bin/SqlDataProvider.dll",(Join-Path $sourceRoot 'tests/CaptchaTests.cs'))
     & "$output/CaptchaTests.exe"

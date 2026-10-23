@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Project was exported from assembly: D:\2020-Fixed\Files\Game.Server.dll-->
   <PropertyGroup>
@@ -170,6 +170,7 @@
     <Compile Include="Game.Base.Packets\InventoryResponseV92.cs" />
     <Compile Include="Game.Base.Packets\BattleResponseV92.cs" />
     <Compile Include="Game.Base.Packets\PetFormsV92.cs" />
+    <Compile Include="Game.Base.Packets\MailAttachmentV92.cs" />
     <Compile Include="Game.Base.Packets\CaptchaV92.cs" />
     <Compile Include="Game.Base.Packets\RoomResponseV92.cs" />
     <Compile Include="Game.Base.Packets\IPacketLib.cs" />

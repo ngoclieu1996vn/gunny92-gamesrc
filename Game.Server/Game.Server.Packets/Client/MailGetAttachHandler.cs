@@ -27,6 +27,11 @@ namespace Game.Server.Packets.Client
 		}
 
 		public int HandlePacket(GameClient client, GSPacketIn packet)
+        {
+            return MailAttachmentV92.Dispatch(client, packet, HandleLegacyPacketV92);
+        }
+
+        private int HandleLegacyPacketV92(GameClient client, GSPacketIn packet)
 		{
 			int mailID = packet.ReadInt();
 			byte num2 = packet.ReadByte();
@@ -136,7 +141,7 @@ namespace Game.Server.Packets.Client
 					{
 						@in.WriteInt(num4);
 					}
-					client.Out.SendTCP(@in);
+					client.Out.SendTCP(MailAttachmentV92.UpgradeResponse(@in));
 					client.Out.SendMessage(normal, string.IsNullOrEmpty(str) ? LanguageMgr.GetTranslation("MailGetAttachHandler.Success") : str);
 				}
 				else
